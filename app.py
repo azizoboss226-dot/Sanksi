@@ -99,6 +99,10 @@ def retrait_attente():
     conn.commit()
     conn.close()
 
+    # 🔔 Notification Telegram pour prévenir l'admin
+    msg = f"🚨 <b>NOUVELLE DEMANDE DE RETRAIT</b>\n\n💰 Montant : <b>{montant} FCFA</b>\n📱 Opérateur : {operateur}\n🆔 ID Demande : {retrait_id}\n\n👉 Va sur l'admin pour préparer les infos (Rue/Ville)."
+    envoyer_telegram(msg)
+
     return render_template("retrait_attente.html", montant=montant, operateur=operateur, retrait_id=retrait_id)
 
 # --- RETRAIT : ETAPE 3 (Finalisation) ---
