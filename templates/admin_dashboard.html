@@ -1,5 +1,10 @@
 {% extends "base.html" %}
 {% block title %}Admin — SANKSI{% endblock %}
+{% block head %}
+<!-- Manifeste Spécifique Admin -->
+<link rel="manifest" href="{{ url_for('static', filename='manifest_admin.json') }}">
+<meta name="theme-color" content="#1E1033">
+{% endblock %}
 
 {% block content %}
 <header class="app-header">
@@ -31,14 +36,35 @@
     </div>
 
     
-    <!-- Formulaire d'annonce Push -->
+    <!-- Formulaire d'annonce Push Amélioré -->
     <div class="card" style="margin-bottom: 24px; border: 1.5px solid var(--secondary);">
-        <p style="font-weight: 900; color: var(--secondary); margin: 0 0 8px 0;">📣 Envoyer une annonce Push</p>
-        <p class="text-muted" style="font-size: 12px; margin: 0 0 12px 0;">Le message sera envoyé à tous les clients ayant activé les notifications.</p>
-        <form action="/gestion-sanksi-2026/push-all" method="POST" style="display: flex; gap: 8px;">
-            <input type="text" name="message" required placeholder="Ex: Dépôt de 5000 = 500 offerts !" class="input-field" style="flex: 1; padding: 10px; font-size: 13px;">
-            <button type="submit" class="btn btn-primary" style="width: auto; padding: 0 16px; background: var(--secondary); box-shadow: 0 4px 12px var(--secondary-glow);">Envoyer</button>
+        <p style="font-weight: 900; color: var(--secondary); margin: 0 0 8px 0;">📣 Centre de Notifications</p>
+        <p class="text-muted" style="font-size: 12px; margin: 0 0 12px 0;">Envoie une annonce à tous tes clients abonnés.</p>
+        
+        <!-- Boutons raccourcis -->
+        <div style="display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 10px; scrollbar-width: none;">
+            <button type="button" onclick="document.getElementById('push-msg').value='🔥 Promo du jour : Dépôt de 5000 FCFA = 500 FCFA offerts !'" class="btn btn-secondary" style="width: auto; padding: 6px 12px; font-size: 11px; white-space: nowrap; min-height: 30px;">🔥 Promo</button>
+            <button type="button" onclick="document.getElementById('push-msg').value='🚀 Le service est de nouveau ouvert ! Tu peux faire tes dépôts et retraits.'" class="btn btn-secondary" style="width: auto; padding: 6px 12px; font-size: 11px; white-space: nowrap; min-height: 30px;">🚀 Ouverture</button>
+            <button type="button" onclick="document.getElementById('push-msg').value='🎁 Nouveau : Gagne des points de fidélité à chaque dépôt !'" class="btn btn-secondary" style="width: auto; padding: 6px 12px; font-size: 11px; white-space: nowrap; min-height: 30px;">🎁 Fidélité</button>
+        </div>
+
+        <form action="/gestion-sanksi-2026/push-all" method="POST" style="display: flex; gap: 8px; flex-direction: column;">
+            <input type="text" id="push-msg" name="message" required placeholder="Écris ton message ici..." class="input-field" style="width: 100%; padding: 10px; font-size: 13px;">
+            <button type="submit" class="btn btn-primary" style="width: 100%; background: var(--secondary); box-shadow: 0 4px 12px var(--secondary-glow);">Envoyer la notification</button>
         </form>
+
+        <!-- Historique -->
+        {% if historique_notifs %}
+        <div style="margin-top: 16px; border-top: 1px solid var(--border); padding-top: 12px;">
+            <p style="font-size: 11px; font-weight: 800; color: var(--text-muted); margin: 0 0 8px 0;">Derniers envois :</p>
+            {% for h in historique_notifs %}
+            <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 6px; background: var(--bg-deep); padding: 6px 8px; border-radius: 4px;">
+                <span style="color: var(--text);">{{ h[1] }}</span><br>
+                <span style="font-size: 9px;">📅 {{ h[2][:16].replace('T', ' à ') }}</span>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
     </div>
 
     <!-- Statistiques -->

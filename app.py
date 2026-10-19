@@ -363,7 +363,11 @@ def admin():
 
     conn.close()
     
-    return render_template("admin_dashboard.html", 
+    # Récupérer l'historique des notifs
+    c.execute("SELECT * FROM historique_notifs ORDER BY id DESC LIMIT 5")
+    historique_notifs = c.fetchall()
+    
+    return render_template("admin_dashboard.html", historique_notifs=historique_notifs, 
                            demandes=demandes, 
                            retraits=retraits,
                            total_depots_count=total_depots_count,
@@ -417,6 +421,10 @@ def admin_push_all():
         
         for abonne in abonnes:
             envoyer_push(abonne[0], "📣 Annonce SANKSI", message)
+        
+        # Sauvegarder dans l'historique
+        c.execute("INSERT INTO historique_notifs (message, date_envoi) VALUES (?, datetime('now', 'localtime'))", (message,))
+        conn.commit()
             
     return redirect("/gestion-sanksi-2026")
 
