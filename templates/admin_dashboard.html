@@ -1,70 +1,101 @@
 {% extends "base.html" %}
-{% block title %}Admin - SANKSI{% endblock %}
+{% block title %}Admin — SANKSI{% endblock %}
 
 {% block content %}
 <header class="app-header">
-    <div class="logo"><div class="logo-mark">S</div> Admin</div>
+    <div class="logo">
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="SANKSI" class="logo-img">
+        <span style="font-size: 16px; margin-left: 8px; color: var(--text-muted); font-weight: 800;">Admin</span>
+    </div>
     <a href="/" class="header-link">Site →</a>
 </header>
 
 <div class="page fade-in">
-    <p class="section-title">Dépôts</p>
+    
+    <!-- ================= DÉPÔTS ================= -->
+    <h2 class="section-title">Dépôts en cours</h2>
     {% for d in demandes %}
-    <div class="card">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
+    <div class="card" style="padding: 16px; margin-bottom: 12px; border-left: 4px solid var(--primary);">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
             <div>
-                <b style="color:var(--primary);font-size:17px;">{{ d[2] }} FCFA</b>
-                <p class="text-muted" style="font-size:12px;margin:2px 0 0 0;">{{ d[3] }} · Réf : {{ d[1] }}</p>
+                <b style="color: var(--primary); font-size: 18px;">{{ d[2] }} FCFA</b>
+                <p class="text-muted" style="font-size: 12px; margin: 2px 0 0 0;">{{ d[3] }} · Réf : {{ d[1] }}</p>
             </div>
-            {% if d[6]=='valide' %}<span class="badge badge-success">{{ d[6] }}</span>
-            {% elif d[6]=='refuse' %}<span class="badge badge-danger">{{ d[6] }}</span>
-            {% else %}<span class="badge badge-warning">{{ d[6] }}</span>{% endif %}
+            {% if d[6] == 'valide' %}
+                <span class="badge badge-success">CRÉDITÉ</span>
+            {% elif d[6] == 'refuse' %}
+                <span class="badge badge-danger">REFUSÉ</span>
+            {% else %}
+                <span class="badge badge-warning">EN ATTENTE</span>
+            {% endif %}
         </div>
-        <p style="font-size:14px;margin:0 0 4px 0;"><b>ID 1xBet :</b> {{ d[4] }}</p>
-        <p style="font-size:14px;margin:0 0 12px 0;"><b>Tél :</b> {{ d[5] }}</p>
+        
+        <div style="background: var(--bg-deep); padding: 10px; border-radius: var(--radius-sm); margin-bottom: 12px;">
+            <p style="font-size: 13px; margin: 0 0 4px 0;"><b>ID 1xBet :</b> {{ d[4] }}</p>
+            <p style="font-size: 13px; margin: 0;"><b>Tél :</b> {{ d[5] }}</p>
+        </div>
+
         {% if d[6] == 'en_attente' %}
-        <div style="display:flex;gap:8px;">
-            <a href="/gestion-sanksi-2026/action/depot/{{ d[0] }}/valider" class="btn btn-success" style="min-height:44px;padding:10px;font-size:14px;">Crédité</a>
-            <a href="/gestion-sanksi-2026/action/depot/{{ d[0] }}/refuser" onclick="var m = prompt('Motif du refus ?'); if (m === null) { return false; } this.href = this.href.split('?')[0] + '?motif=' + encodeURIComponent(m);" class="btn" style="min-height:44px;padding:10px;font-size:14px;background:var(--danger);color:white;">Refusé</a>
+        <div style="display: flex; gap: 8px;">
+            <a href="/gestion-sanksi-2026/action/depot/{{ d[0] }}/valider" class="btn btn-success" style="flex: 1; min-height: 40px; padding: 8px; font-size: 13px;">Créditer</a>
+            <a href="/gestion-sanksi-2026/action/depot/{{ d[0] }}/refuser" onclick="var m = prompt('Motif du refus ?'); if (m === null) { return false; } this.href = this.href.split('?')[0] + '?motif=' + encodeURIComponent(m);" class="btn" style="flex: 1; min-height: 40px; padding: 8px; font-size: 13px; background: var(--danger-soft); color: var(--danger); font-weight: 800;">Refuser</a>
         </div>
         {% endif %}
     </div>
+    {% else %}
+    <p class="text-muted" style="font-size: 13px; font-style: italic;">Aucun dépôt en cours.</p>
     {% endfor %}
 
-    <p class="section-title" style="margin-top:24px;">Retraits</p>
+    <div class="divider"></div>
+
+    <!-- ================= RETRAITS ================= -->
+    <h2 class="section-title">Retraits en cours</h2>
     {% for r in retraits %}
-    <div class="card">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
+    <div class="card" style="padding: 16px; margin-bottom: 12px; border-left: 4px solid var(--warning);">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
             <div>
-                <b style="color:var(--primary);font-size:17px;">{{ r[2] }} FCFA</b>
-                <p class="text-muted" style="font-size:12px;margin:2px 0 0 0;">{{ r[3] }} · ID : {{ r[0] }}</p>
+                <b style="color: var(--primary); font-size: 18px;">{{ r[2] }} FCFA</b>
+                <p class="text-muted" style="font-size: 12px; margin: 2px 0 0 0;">{{ r[3] }} · ID : {{ r[0] }}</p>
             </div>
-            {% if r[6]=='valide' %}<span class="badge badge-success">{{ r[6] }}</span>
-            {% elif r[6]=='refuse' %}<span class="badge badge-danger">{{ r[6] }}</span>
-            {% elif r[6]=='prepare' %}<span class="badge badge-info">{{ r[6] }}</span>
-            {% else %}<span class="badge badge-warning">{{ r[6] }}</span>{% endif %}
+            {% if r[6] == 'valide' %}
+                <span class="badge badge-success">PAYÉ</span>
+            {% elif r[6] == 'refuse' %}
+                <span class="badge badge-danger">REFUSÉ</span>
+            {% elif r[6] == 'prepare' %}
+                <span class="badge badge-info">PRÉPARÉ</span>
+            {% else %}
+                <span class="badge badge-warning">EN ATTENTE</span>
+            {% endif %}
         </div>
 
         {% if r[6] == 'preparation' %}
-        <form action="/gestion-sanksi-2026/preparer/{{ r[0] }}" method="POST" style="background:var(--bg-deep);padding:14px;border-radius:var(--radius);">
-            <p style="font-size:12px;font-weight:800;margin:0 0 10px 0;">Infos à envoyer au client :</p>
-            <input type="text" name="rue" placeholder="Rue (ex: Rue 12.34)" required class="input-field" style="margin-bottom:8px;">
-            <input type="text" name="ville" placeholder="Ville (ex: Ouagadougou)" required class="input-field" style="margin-bottom:12px;">
-            <button type="submit" class="btn btn-primary" style="min-height:44px;padding:10px;font-size:14px;">Envoyer au client</button>
+        <form action="/gestion-sanksi-2026/preparer/{{ r[0] }}" method="POST" style="background: var(--bg-deep); padding: 14px; border-radius: var(--radius); margin-top: 8px;">
+            <p style="font-size: 12px; font-weight: 800; margin: 0 0 10px 0; color: var(--primary);">📍 Infos à envoyer au client :</p>
+            <input type="text" name="rue" placeholder="Rue (ex: Rue 12.34)" required class="input-field" style="margin-bottom: 8px; padding: 10px;">
+            <input type="text" name="ville" placeholder="Ville (ex: Ouagadougou)" required class="input-field" style="margin-bottom: 12px; padding: 10px;">
+            <button type="submit" class="btn btn-primary" style="min-height: 40px; padding: 8px; font-size: 13px; width: 100%;">Envoyer les infos</button>
         </form>
         {% elif r[6] == 'prepare' %}
-        <p style="font-size:12px;color:var(--primary);margin:0;">En attente du code de retrait du client...</p>
+        <div class="alert alert-info" style="margin-bottom: 0; padding: 10px; font-size: 12px;">
+            ⏳ En attente du code de retrait saisi par le client...
+        </div>
         {% else %}
-        <p style="font-size:14px;margin:0 0 4px 0;"><b>Nom :</b> {{ r[4] }}</p>
-        <p style="font-size:14px;margin:0 0 12px 0;"><b>Tél :</b> {{ r[5] }}</p>
+        <div style="background: var(--bg-deep); padding: 10px; border-radius: var(--radius-sm); margin-bottom: 12px;">
+            <p style="font-size: 13px; margin: 0 0 4px 0;"><b>Nom :</b> {{ r[4] }}</p>
+            <p style="font-size: 13px; margin: 0;"><b>Tél :</b> {{ r[5] }}</p>
+        </div>
+        
         {% if r[6] == 'en_attente' %}
-        <div style="display:flex;gap:8px;">
-            <a href="/gestion-sanksi-2026/action/retrait/{{ r[0] }}/valider" class="btn btn-success" style="min-height:44px;padding:10px;font-size:14px;">Payé</a>
-            <a href="/gestion-sanksi-2026/action/retrait/{{ r[0] }}/refuser" onclick="var m = prompt('Motif du refus ?'); if (m === null) { return false; } this.href = this.href.split('?')[0] + '?motif=' + encodeURIComponent(m);" class="btn" style="min-height:44px;padding:10px;font-size:14px;background:var(--danger);color:white;">Refusé</a>
+        <div style="display: flex; gap: 8px;">
+            <a href="/gestion-sanksi-2026/action/retrait/{{ r[0] }}/valider" class="btn btn-success" style="flex: 1; min-height: 40px; padding: 8px; font-size: 13px;">Marquer Payé</a>
+            <a href="/gestion-sanksi-2026/action/retrait/{{ r[0] }}/refuser" onclick="var m = prompt('Motif du refus ?'); if (m === null) { return false; } this.href = this.href.split('?')[0] + '?motif=' + encodeURIComponent(m);" class="btn" style="flex: 1; min-height: 40px; padding: 8px; font-size: 13px; background: var(--danger-soft); color: var(--danger); font-weight: 800;">Refuser</a>
         </div>
         {% endif %}
         {% endif %}
     </div>
+    {% else %}
+    <p class="text-muted" style="font-size: 13px; font-style: italic;">Aucun retrait en cours.</p>
     {% endfor %}
+
 </div>
 {% endblock %}

@@ -1,15 +1,28 @@
 {% extends "base.html" %}
-{% block title %}SANKSI - Admin{% endblock %}
+{% block title %}SANKSI — Admin{% endblock %}
 
 {% block content %}
 <div class="page fade-in" style="justify-content:center;">
+    <div style="text-align: center; margin-bottom: 24px;">
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="SANKSI" style="height: 60px; width: auto; border-radius: 12px; box-shadow: 0 8px 24px var(--primary-glow); margin: 0 auto;">
+        <h1 class="page-title" style="margin-top: 16px;">Espace Admin</h1>
+    </div>
+
     <form method="POST" class="card">
-        <h1 class="page-title">SANKSI Admin</h1>
         {% if erreur %}
-        <div class="alert alert-danger">{{ erreur }}</div>
+        <div class="alert alert-danger">
+            <span>⚠️</span> {{ erreur }}
+        </div>
         {% endif %}
-        <input type="password" name="password" placeholder="Mot de passe" class="input-field" style="margin-bottom:14px;">
-        <button type="submit" class="btn btn-primary">Connexion</button>
+        
+        <label class="label">Mot de passe</label>
+        <input type="password" name="password" placeholder="••••••••" class="input-field" style="margin-bottom: 20px;">
+        
+        <button type="submit" class="btn btn-primary" style="width: 100%;">Se connecter</button>
     </form>
+    
+    <div style="text-align: center; margin-top: 20px;">
+        <a href="/" style="font-size: 13px; font-weight: 700; color: var(--text-muted);">← Retour au site client</a>
+    </div>
 </div>
 {% endblock %}
