@@ -269,7 +269,16 @@ def historique():
             c.execute("SELECT * FROM retraits WHERE telephone = ? ORDER BY id DESC", (tel,))
             retraits = c.fetchall()
             conn.close()
-    return render_template("historique.html", demandes=demandes, retraits=retraits, tel=tel)
+    # Récupérer les points de fidélité
+    points_fidelite = 0
+    if tel:
+        c.execute("SELECT points FROM fidelite WHERE telephone = ?", (tel,))
+        row_pts = c.fetchone()
+        if row_pts: points_fidelite = row_pts[0]
+        conn = sqlite3.connect('sanksi.db') # on rouvre car la connexion a pu fermer dans le if
+        conn.close()
+        
+    return render_template("historique.html", demandes=demandes, retraits=retraits, tel=tel, points=points_fidelite)
 
 # --- ADMIN ---
 @app.route("/gestion-sanksi-2026", methods=["GET", "POST"])
@@ -367,6 +376,23 @@ def admin_bloquer(telephone):
         blacklist.append(telephone)
         
     with open('blacklist.json', 'w') as f: json.dump(blacklist, f)
+    return redirect("/gestion-sanksi-2026")
+
+
+@app.route("/gestion-sanksi-2026/push-all", methods=["POST"])
+def admin_push_all():
+    if not session.get('admin'): return redirect("/gestion-sanksi-2026")
+    message = request.form.get("message")
+    if message:
+        conn = sqlite3.connect('sanksi.db')
+        c = conn.cursor()
+        c.execute("SELECT telephone FROM push_subs")
+        abonnes = c.fetchall()
+        conn.close()
+        
+        for abonne in abonnes:
+            envoyer_push(abonne[0], "📣 Annonce SANKSI", message)
+            
     return redirect("/gestion-sanksi-2026")
 
 @app.route("/gestion-sanksi-2026/export-csv")

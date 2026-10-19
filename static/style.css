@@ -718,3 +718,27 @@ button { font-family: inherit; cursor: pointer; border: none; }
 .app-container {
     padding-bottom: 80px;
 }
+
+/* Bannière d'installation PWA */
+#pwa-banner {
+    position: fixed;
+    bottom: 70px; /* Au-dessus de la bottom-nav */
+    left: 50%;
+    transform: translateX(-50%) translateY(150%);
+    width: calc(100% - 40px);
+    max-width: 440px;
+    background: white;
+    border: 1.5px solid var(--primary);
+    border-radius: var(--radius);
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 10px 30px rgba(124, 58, 237, 0.2);
+    z-index: 2000;
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+#pwa-banner.show {
+    transform: translateX(-50%) translateY(0);
+}
+#pwa-banner img { width: 40px; height: 40px; border-radius: 8px; }

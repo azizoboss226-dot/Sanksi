@@ -29,6 +29,17 @@
         </a>
     </div>
 
+    
+    <!-- Formulaire d'annonce Push -->
+    <div class="card" style="margin-bottom: 24px; border: 1.5px solid var(--secondary);">
+        <p style="font-weight: 900; color: var(--secondary); margin: 0 0 8px 0;">📣 Envoyer une annonce Push</p>
+        <p class="text-muted" style="font-size: 12px; margin: 0 0 12px 0;">Le message sera envoyé à tous les clients ayant activé les notifications.</p>
+        <form action="/gestion-sanksi-2026/push-all" method="POST" style="display: flex; gap: 8px;">
+            <input type="text" name="message" required placeholder="Ex: Dépôt de 5000 = 500 offerts !" class="input-field" style="flex: 1; padding: 10px; font-size: 13px;">
+            <button type="submit" class="btn btn-primary" style="width: auto; padding: 0 16px; background: var(--secondary); box-shadow: 0 4px 12px var(--secondary-glow);">Envoyer</button>
+        </form>
+    </div>
+
     <!-- Statistiques -->
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px;">
         <div class="card" style="padding: 16px; text-align: center; border-top: 4px solid var(--success);">

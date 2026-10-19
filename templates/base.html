@@ -210,16 +210,7 @@
 
                 var carte = document.createElement('div');
                 carte.className = 'bm-card';
-                carte.innerHTML = '<div class="bm-logo" style="font-size:24px;">📲</div>'
-                    + '<div style="flex:1;"><div class="bm-name">Télécharger l\'application</div>'
-                    + '<div class="bm-subtitle">Accès rapide et notifications</div></div>'
-                    + '<button type="button" class="header-link" id="btn-install" style="border:none;">Installer</button>';
-                var ref = container.querySelector('.bm-card');
-                if (ref) container.insertBefore(carte, ref);
-                else container.appendChild(carte);
-
-                document.getElementById('btn-install').onclick = window.installApp;
-                window.addEventListener('appinstalled', function () { carte.remove(); });
+                
             }
         }
     })();
@@ -393,6 +384,20 @@
 
     <!-- Barre de navigation mobile -->
     {% if not request.path.startswith('/gestion-sanksi') %}
+    
+    <!-- Bannière d'installation PWA -->
+    <div id="pwa-banner">
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="SANKSI">
+        <div style="flex: 1;">
+            <p style="font-weight: 900; font-size: 13px; margin: 0; color: var(--text);">Installe l'application</p>
+            <p style="font-size: 11px; color: var(--text-muted); margin: 2px 0 0 0;">Accès rapide depuis ton écran d'accueil.</p>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 4px;">
+            <button type="button" onclick="installApp()" class="btn btn-primary" style="padding: 6px 12px; font-size: 12px; min-height: 32px; border-radius: 6px;">Installer</button>
+            <button type="button" onclick="dismissPwa()" style="background: none; border: none; font-size: 10px; color: var(--text-muted); text-decoration: underline;">Plus tard</button>
+        </div>
+    </div>
+
     <nav class="bottom-nav">
         <a href="/" class="nav-item {% if request.path == '/' %}active{% endif %}">
             <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
@@ -408,5 +413,32 @@
         </a>
     </nav>
     {% endif %}
+
+    <script>
+        let deferredPrompt = null;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            // Afficher la bannière si l'utilisateur ne l'a pas encore rejetée
+            if (!localStorage.getItem('sanksi_pwa_dismissed')) {
+                setTimeout(() => document.getElementById('pwa-banner').classList.add('show'), 2000);
+            }
+        });
+
+        window.installApp = function() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') dismissPwa();
+                    deferredPrompt = null;
+                });
+            }
+        };
+
+        window.dismissPwa = function() {
+            document.getElementById('pwa-banner').classList.remove('show');
+            localStorage.setItem('sanksi_pwa_dismissed', 'true');
+        };
+    </script>
 </body>
 </html>
