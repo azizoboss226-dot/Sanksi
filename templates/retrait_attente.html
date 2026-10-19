@@ -5,6 +5,20 @@
 <div class="page fade-in">
     <h1 class="page-title">Préparation du retrait</h1>
 
+<!-- Bandeau Notifications -->
+<div class="notif-prompt" style="display:none; background:var(--primary-soft); border:1.5px solid var(--primary); border-radius:var(--radius); padding:14px 16px; margin-bottom:20px; align-items:center; gap:12px; animation:fadeIn 0.4s ease; text-align:left;">
+    <div style="font-size:24px;">🔔</div>
+    <div style="flex:1;">
+        <div style="font-weight:800; font-size:13px; color:var(--text);">Active les notifications</div>
+        <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">Pour être averti dès que l'agent valide ton opération.</div>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:4px;">
+        <button type="button" class="btn btn-primary" style="padding:6px 12px; font-size:12px; min-height:32px; border-radius:8px;" onclick="askNotificationPermission()">Activer</button>
+        <button type="button" style="background:none; border:none; color:var(--text-muted); font-size:10px; font-weight:700; text-decoration:underline;" onclick="dismissNotifPrompt()">Plus tard</button>
+    </div>
+</div>
+
+
     <div class="card">
         <!-- Zone d'attente -->
         <div id="zone-attente" class="text-center" style="padding: 20px 0;">
