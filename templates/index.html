@@ -156,7 +156,8 @@
             alert("Le montant minimum est de 500 FCFA");
             return;
         }
-        alert(`Dépôt de ${montant} FCFA via ${currentOperator} (Page suivante à venir)`);
+        // On redirige vers la page de dépôt avec le montant et l'opérateur
+        window.location.href = `/depot?montant=${montant}&operateur=${currentOperator}`;
     }
 </script>
 
