@@ -36,10 +36,37 @@ def init_db():
     c.execute('''CREATE TABLE IF NOT EXISTS notifications (
         id INTEGER PRIMARY KEY AUTOINCREMENT, telephone TEXT, message TEXT,
         lu INTEGER DEFAULT 0, created_at TEXT)''')
+    c.execute('''CREATE TABLE IF NOT EXISTS push_subs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT, telephone TEXT,
+        endpoint TEXT UNIQUE, p256dh TEXT, auth TEXT)''')
     conn.commit()
     conn.close()
 
 init_db()
+
+def pousser(telephone, message, url="/"):
+    import os, json
+    cle = os.environ.get("VAPID_PRIVATE_KEY")
+    if not cle or not telephone:
+        return
+    try:
+        from pywebpush import webpush
+    except Exception:
+        return
+    conn = sqlite3.connect('sanksi.db')
+    c = conn.cursor()
+    c.execute("SELECT endpoint, p256dh, auth FROM push_subs WHERE telephone = ?", (telephone,))
+    subs = c.fetchall()
+    conn.close()
+    sujet = os.environ.get("VAPID_SUBJECT", "mailto:admin@example.com")
+    for e, p, a in subs:
+        try:
+            webpush(subscription_info={"endpoint": e, "keys": {"p256dh": p, "auth": a}},
+                    data=json.dumps({"title": "SANKSI", "body": message, "url": url}),
+                    vapid_private_key=cle, vapid_claims={"sub": sujet})
+        except Exception as err:
+            print("push erreur:", err)
+
 
 def ajouter_notif(telephone, message):
     if not telephone:
@@ -275,6 +302,7 @@ def admin_preparer_retrait(id):
     if row and row[0]:
         c.execute("INSERT INTO notifications (telephone, message, lu, created_at) VALUES (?, ?, 0, ?)",
                   (row[0], "📍 L'agent a préparé ton retrait ! Ouvre la page d'attente pour voir la Rue et la Ville à mettre sur 1xBet.", datetime.now().isoformat()))
+        pousser(row[0], "📍 L'agent a préparé ton retrait ! Ouvre la page d'attente pour voir la Rue et la Ville à mettre sur 1xBet.")
     
         
     conn.commit()
@@ -298,12 +326,14 @@ def admin_action(type_op, id, action):
         if info:
             c.execute("INSERT INTO notifications (telephone, message, lu, created_at) VALUES (?, ?, 0, ?)",
                       (info[1], f"✅ Ton {nom_op} de {info[0]} FCFA a été effectué.", datetime.now().isoformat()))
+            pousser(info[1], f"✅ Ton {nom_op} de {info[0]} FCFA a été effectué.")
     elif action == "refuser":
         c.execute(f"UPDATE {table} SET statut = 'refuse' WHERE id = ?", (id,))
         motif = request.args.get("motif", "").strip() or "Aucun motif précisé."
         if info:
             c.execute("INSERT INTO notifications (telephone, message, lu, created_at) VALUES (?, ?, 0, ?)",
                       (info[1], f"❌ Ton {nom_op} de {info[0]} FCFA a été refusé. Motif : {motif}", datetime.now().isoformat()))
+            pousser(info[1], f"❌ Ton {nom_op} de {info[0]} FCFA a été refusé. Motif : {motif}")
     conn.commit()
     conn.close()
     return redirect("/gestion-sanksi-2026")
@@ -323,6 +353,38 @@ def api_notifications():
     conn.commit()
     conn.close()
     return jsonify([r[1] for r in rows])
+
+
+@app.route("/api/push/cle")
+def push_cle():
+    import os
+    return os.environ.get("VAPID_PUBLIC_KEY", "")
+
+
+@app.route("/api/push/abonner", methods=["POST"])
+def push_abonner():
+    from flask import jsonify
+    d = request.get_json(silent=True) or {}
+    tel = (d.get("telephone") or "").strip()
+    sub = d.get("subscription") or {}
+    keys = sub.get("keys") or {}
+    if not tel or not sub.get("endpoint") or not keys.get("p256dh") or not keys.get("auth"):
+        return jsonify({"ok": False}), 400
+    conn = sqlite3.connect('sanksi.db')
+    c = conn.cursor()
+    c.execute("INSERT OR REPLACE INTO push_subs (telephone, endpoint, p256dh, auth) VALUES (?, ?, ?, ?)",
+              (tel, sub["endpoint"], keys["p256dh"], keys["auth"]))
+    conn.commit()
+    conn.close()
+    return jsonify({"ok": True})
+
+
+@app.route("/sw.js")
+def service_worker():
+    from flask import send_from_directory
+    rep = send_from_directory('static', 'sw.js', mimetype='application/javascript')
+    rep.headers['Cache-Control'] = 'no-cache'
+    return rep
 
 
 if __name__ == "__main__":

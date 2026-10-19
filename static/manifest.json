@@ -1,0 +1,8 @@
+{
+  "name": "SANKSI",
+  "short_name": "SANKSI",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FAF7FF",
+  "theme_color": "#7C3AED"
+}
