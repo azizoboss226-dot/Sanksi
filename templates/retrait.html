@@ -15,7 +15,6 @@
         .input-field { width: 100%; padding: 14px; border-radius: 10px; background: #0F172A; border: 1px solid #334155; color: white; font-size: 16px; margin-top: 8px; box-sizing: border-box; }
         .input-field:focus { outline: none; border-color: #38BDF8; }
         .btn-pay { width: 100%; background: #38BDF8; color: #0F172A; font-weight: 900; font-size: 18px; border: none; border-radius: 12px; padding: 18px; cursor: pointer; margin-top: 20px; box-shadow: 0 4px 12px rgba(56, 189, 248, 0.3); }
-        .info-box { background: #1E293B; border-left: 4px solid #FCD34D; padding: 12px; border-radius: 8px; margin-bottom: 16px; }
     </style>
 </head>
 <body>
@@ -29,22 +28,22 @@
         <p style="color: #38BDF8; font-size: 12px; font-weight: 700;">via {{ operateur }}</p>
     </div>
 
-    <div class="info-box">
-        <p style="font-size: 12px; color: #FCD34D; margin: 0; font-weight: 600;">⚠️ Rappel : Assure-toi d'avoir déjà déposé sur 1xBet avant de demander un retrait.</p>
-    </div>
-
     <form action="/retrait/confirmer" method="POST">
         <input type="hidden" name="montant" value="{{ montant }}">
         <input type="hidden" name="operateur" value="{{ operateur }}">
 
         <div class="step-card">
             <label style="font-weight: 800; font-size: 14px;">1. Ton code de retrait 1xBet</label>
-            <p style="color: #94A3B8; font-size: 11px; margin: 2px 0 0 0;">Le code généré par 1xBet pour valider ton retrait.</p>
             <input type="text" name="code_retrait" required class="input-field" placeholder="Ex: RET-123456">
         </div>
 
         <div class="step-card">
-            <label style="font-weight: 800; font-size: 14px;">2. Numéro qui reçoit l'argent</label>
+            <label style="font-weight: 800; font-size: 14px;">2. Ton Nom complet</label>
+            <input type="text" name="nom" required class="input-field" placeholder="Ex: Moussa Traoré">
+        </div>
+
+        <div class="step-card">
+            <label style="font-weight: 800; font-size: 14px;">3. Numéro qui reçoit l'argent</label>
             <p style="color: #94A3B8; font-size: 11px; margin: 2px 0 0 0;">(Mets l'indicatif +226 si tu n'es pas au Burkina Faso)</p>
             <input type="tel" name="telephone" required class="input-field" placeholder="Ex: 70 00 00 00 ou +226 70 00 00 00">
         </div>
