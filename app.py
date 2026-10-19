@@ -489,6 +489,32 @@ def admin_backup():
     db_path = os.path.join(os.getcwd(), 'sanksi.db')
     return send_file(db_path, as_attachment=True, download_name="sanksi_backup.db")
 
+
+@app.route("/gestion-sanksi-2026/relancer-inactifs")
+def admin_relancer_inactifs():
+    if not session.get('admin'): return redirect("/gestion-sanksi-2026")
+    conn = sqlite3.connect('sanksi.db')
+    c = conn.cursor()
+    
+    # Trouver les clients qui ont un abonnement Push mais AUCUN dépôt dans les 7 derniers jours
+    c.execute("""
+        SELECT DISTINCT ps.telephone FROM push_subs ps
+        WHERE ps.telephone NOT IN (
+            SELECT telephone FROM demandes
+            WHERE date(created_at) >= date('now', '-7 days', 'localtime')
+        )
+    """)
+    inactifs = c.fetchall()
+    conn.close()
+
+    count = 0
+    for t in inactifs:
+        if t[0]:
+            envoyer_push(t[0], "🎁 Tu nous manques !", "Reviens faire un dépôt aujourd'hui sur SANKSI et gagne des points bonus !")
+            count += 1
+
+    return redirect("/gestion-sanksi-2026")
+
 @app.route("/gestion-sanksi-2026/export-csv")
 def export_csv():
     if not session.get('admin'): return redirect("/gestion-sanksi-2026")
@@ -627,6 +653,19 @@ def admin_action(type_op, id, action):
     conn.commit()
     conn.close()
     return redirect("/gestion-sanksi-2026")
+
+
+@app.route("/api/admin/live-check")
+def api_admin_live_check():
+    if not session.get('admin'): return {"d": 0, "r": 0}
+    conn = sqlite3.connect('sanksi.db')
+    c = conn.cursor()
+    c.execute("SELECT COUNT(*) FROM demandes WHERE statut = 'en_attente'")
+    d = c.fetchone()[0]
+    c.execute("SELECT COUNT(*) FROM retraits WHERE statut IN ('en_attente', 'preparation', 'prepare')")
+    r = c.fetchone()[0]
+    conn.close()
+    return {"d": d, "r": r}
 
 @app.route("/api/notifications")
 def api_notifications():
