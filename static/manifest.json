@@ -1,6 +1,7 @@
 {
-  "name": "SANKSI",
+  "name": "SANKSI - Recharge 1xBet",
   "short_name": "SANKSI",
+  "description": "Dépôt et retrait rapide pour 1xBet",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#FAF7FF",
