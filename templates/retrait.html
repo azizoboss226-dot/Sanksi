@@ -1,11 +1,11 @@
 {% extends "base.html" %}
-{% block title %}SANKSI - Finaliser le retrait{% endblock %}
+{% block title %}SANKSI — Finaliser le retrait{% endblock %}
 
 {% block content %}
 <div class="page fade-in">
     <a href="/" class="back-link">← Annuler</a>
     <h1 class="page-title">Finaliser le retrait</h1>
-
+    
     <div class="card text-center">
         <p class="text-muted" style="font-size:14px;margin:0;">Montant à retirer</p>
         <div class="amount-big">{{ montant }} FCFA</div>
@@ -17,27 +17,27 @@
         <input type="hidden" name="operateur" value="{{ operateur }}">
 
         <div class="step-card">
-            <label class="label"><span class="step-num" style="margin-right:8px;">1</span>Ton code de retrait 1xBet</label>
+            <label class="label"><span class="step-num">1</span> Ton code de retrait 1xBet</label>
             <input type="text" name="code_retrait" required class="input-field" placeholder="Ex: RET-123456">
         </div>
 
         <div class="step-card">
-            <label class="label"><span class="step-num" style="margin-right:8px;">2</span>Ton nom complet</label>
+            <label class="label"><span class="step-num">2</span> Ton nom complet</label>
             <input type="text" name="nom" required class="input-field" placeholder="Ex: Moussa Traoré">
         </div>
 
         <div class="step-card">
-            <label class="label"><span class="step-num" style="margin-right:8px;">3</span>Numéro qui reçoit l'argent</label>
-            <input type="tel" name="telephone" required class="input-field" placeholder="Ex: 70 00 00 00 ou +226 70 00 00 00">
+            <label class="label"><span class="step-num">3</span> Numéro qui reçoit l'argent</label>
+            <input type="tel" name="telephone" required class="input-field" placeholder="Ex: 70 00 00 00">
             <p class="hint">Mets l'indicatif +226 si tu n'es pas au Burkina Faso.</p>
         </div>
 
-        <button type="submit" class="btn btn-primary" style="margin-top:8px;">Valider ma demande</button>
+        <button type="submit" class="btn-main" style="margin: 0 0 16px 0; width: 100%;">Valider ma demande</button>
     </form>
 
-    <div class="card text-center" style="margin-top:16px;">
+    <div class="card text-center" style="background: var(--bg-deep); border: none;">
         <p style="font-weight:800;font-size:13px;margin:0 0 10px 0;">Un problème ?</p>
-        <a href="https://wa.me/22677970985?text=Bonjour%2C%20j%27ai%20besoin%20d%27aide%20pour%20un%20retrait%20sur%20SANKSI" target="_blank" class="btn" style="background:#25D366;color:white;">💬 Demander de l'aide sur WhatsApp</a>
+        <a href="https://wa.me/22677970985?text=Bonjour%2C%20j%27ai%20besoin%20d%27aide%20pour%20un%20retrait%20sur%20SANKSI" target="_blank" class="btn" style="background:#25D366;color:white;">💬 Demander de l'aide</a>
     </div>
 </div>
 {% endblock %}

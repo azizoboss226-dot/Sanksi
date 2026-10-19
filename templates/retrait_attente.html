@@ -1,37 +1,55 @@
 {% extends "base.html" %}
-{% block title %}SANKSI - Préparation du retrait{% endblock %}
+{% block title %}SANKSI — Préparation du retrait{% endblock %}
 
 {% block content %}
 <div class="page fade-in">
     <h1 class="page-title">Préparation du retrait</h1>
 
     <div class="card">
-        <div id="zone-attente" class="text-center">
-            <p class="text-muted" style="font-size:14px;margin:0 0 10px 0;">Patiente, l'agent prépare tes informations de retrait...</p>
-            <div style="font-size:34px;margin:16px 0;">⏳</div>
+        <!-- Zone d'attente -->
+        <div id="zone-attente" class="text-center" style="padding: 20px 0;">
+            <p class="text-muted" style="font-size:14px;margin:0 0 16px 0; font-weight: 600;">Patiente, l'agent prépare tes informations de retrait...</p>
+            <div style="font-size:44px;margin:0; animation: pulse 2s infinite;">⏳</div>
         </div>
-
-        <div id="zone-infos" style="display:none;">
-            <p class="text-muted text-center" style="font-size:14px;margin:0 0 14px 0;">L'agent a répondu ! Voici les infos à mettre dans 1xBet :</p>
-            <span class="label" style="font-size:12px;">Rue :</span>
-            <div class="merchant-number reference" id="info-rue" style="margin-top:0;"></div>
-            <span class="label" style="font-size:12px;">Ville :</span>
-            <div class="merchant-number reference" id="info-ville" style="margin-top:0;"></div>
-            <p class="text-muted text-center" style="font-size:12px;margin:14px 0;">Une fois ces informations entrées sur 1xBet et le retrait lancé, clique sur le bouton ci-dessous.</p>
+        
+        <!-- Zone d'infos (cachée au début) -->
+        <div id="zone-infos" style="display:none; animation: fadeIn 0.4s ease;">
+            <div class="alert alert-success" style="margin-bottom: 20px;">
+                🎉 L'agent a répondu !
+            </div>
+            <p class="text-muted" style="font-size:14px;margin:0 0 16px 0;">Voici les informations à renseigner dans l'application 1xBet pour ton retrait :</p>
+            
+            <span class="label" style="font-size:12px; color:var(--text-muted);">Rue :</span>
+            <div class="merchant-number reference" id="info-rue" style="margin-top:0; margin-bottom: 16px;"></div>
+            
+            <span class="label" style="font-size:12px; color:var(--text-muted);">Ville :</span>
+            <div class="merchant-number reference" id="info-ville" style="margin-top:0; margin-bottom: 24px;"></div>
+            
+            <p class="text-muted text-center" style="font-size:12px;margin:0 0 16px 0;">Une fois ces informations entrées sur 1xBet et le retrait lancé, clique sur le bouton ci-dessous.</p>
+            
             <a href="/retrait?montant={{ montant }}&operateur={{ operateur }}" class="btn btn-success">✅ J'ai le code, continuer</a>
         </div>
     </div>
-
-    <div class="card text-center">
-        <p style="font-weight:800;margin:0 0 10px 0;">Besoin d'aide ?</p>
-        <a href="https://wa.me/22677970985?text=Bonjour%2C%20j%27ai%20besoin%20d%27aide%20pour%20un%20retrait%20sur%20SANKSI" target="_blank" class="btn" style="background:#25D366;color:white;">💬 Demander de l'aide sur WhatsApp</a>
+    
+    <div class="card text-center" style="background: var(--bg-deep); border: none;">
+        <p style="font-weight:800;margin:0 0 10px 0; font-size: 13px;">Besoin d'aide ?</p>
+        <a href="https://wa.me/22677970985?text=Bonjour%2C%20j%27ai%20besoin%20d%27aide%20pour%20un%20retrait%20sur%20SANKSI" target="_blank" class="btn" style="background:#25D366;color:white;">💬 Demander de l'aide</a>
     </div>
 </div>
+
+<style>
+    @keyframes pulse {
+        0% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.1); opacity: 0.7; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+</style>
 {% endblock %}
 
 {% block scripts %}
 <script>
     const retraitId = "{{ retrait_id }}";
+    let intervalId;
 
     function verifierStatut() {
         fetch(`/api/retrait/${retraitId}`)
@@ -48,6 +66,10 @@
             .catch(err => console.log("En attente..."));
     }
 
-    const intervalId = setInterval(verifierStatut, 3000);
+    // Lancer la vérification toutes les 3 secondes
+    intervalId = setInterval(verifierStatut, 3000);
+    
+    // Première vérification immédiate au chargement
+    verifierStatut();
 </script>
 {% endblock %}

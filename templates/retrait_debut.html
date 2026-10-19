@@ -1,28 +1,28 @@
 {% extends "base.html" %}
-{% block title %}SANKSI - Nouveau retrait{% endblock %}
+{% block title %}SANKSI — Nouveau retrait{% endblock %}
 
 {% block content %}
 <div class="page fade-in" style="justify-content:center;">
     <a href="/" class="back-link">← Retour</a>
-
-    <div class="card text-center">
-        <div style="font-size:50px;margin-bottom:12px;">🤔</div>
-        <h1 class="page-title" style="font-size:18px;">C'est ta première fois pour un retrait sur 1xBet ?</h1>
-        <p class="text-muted" style="font-size:14px;margin:0 0 20px 0;">Si oui, un agent peut t'accompagner pas à pas pour éviter les erreurs.</p>
-
+    
+    <div class="card text-center" style="padding: 32px 20px;">
+        <div style="font-size:50px;margin-bottom:16px;">🤔</div>
+        <h1 class="page-title" style="font-size:18px; margin-bottom: 12px;">C'est ta première fois pour un retrait sur 1xBet ?</h1>
+        <p class="text-muted" style="font-size:14px;margin:0 0 24px 0;">Si oui, un agent peut t'accompagner pas à pas pour éviter les erreurs.</p>
+        
         <form method="POST" action="/retrait/debut?montant={{ montant }}&operateur={{ operateur }}">
             <label class="label" style="text-align:left;">Numéro qui recevra l'argent :</label>
-            <input type="tel" name="telephone" required class="input-field" placeholder="Ex: 70 00 00 00 ou +226...">
-
-            <button type="button" onclick="montrerAide()" class="btn btn-primary" style="margin-top:16px;">Oui, c'est ma première fois</button>
-            <button type="submit" class="btn btn-secondary" style="margin-top:10px;">Non, je sais comment faire</button>
+            <input type="tel" name="telephone" required class="input-field" placeholder="Ex: 70 00 00 00 ou +226..." style="margin-bottom: 20px;">
+            
+            <button type="button" onclick="montrerAide()" class="btn btn-primary" style="margin-bottom:12px;">Oui, c'est ma première fois</button>
+            <button type="submit" class="btn btn-secondary">Non, je sais comment faire</button>
         </form>
     </div>
 
-    <div id="zone-aide" class="card text-center" style="display:none;border-color:#25D366;">
-        <p style="font-weight:800;margin:0 0 6px 0;">Pas de problème !</p>
-        <p class="text-muted" style="font-size:13px;margin:0 0 14px 0;">Clique sur le bouton ci-dessous pour être mis en relation avec un agent qui va te guider.</p>
-        <a href="https://wa.me/22677970985?text=Bonjour%2C%20c%27est%20ma%20premiere%20fois%20pour%20un%20retrait%201xBet%20sur%20SANKSI%2C%20j%27ai%20besoin%20d%27aide" target="_blank" class="btn" style="background:#25D366;color:white;">💬 Demander une assistance</a>
+    <div id="zone-aide" class="card text-center" style="display:none; border: 2px solid #25D366; animation: fadeIn 0.4s ease;">
+        <p style="font-weight:900;margin:0 0 6px 0; color:#25D366;">Pas de problème !</p>
+        <p class="text-muted" style="font-size:13px;margin:0 0 16px 0;">Clique sur le bouton ci-dessous pour être mis en relation avec un agent qui va te guider.</p>
+        <a href="https://wa.me/22677970985?text=Bonjour%2C%20c%27est%20ma%20premiere%20fois%20pour%20un%20retrait%201xBet%20sur%20SANKSI%2C%20j%27ai%20besoin%20d%27aide" target="_blank" class="btn" style="background:#25D366;color:white; box-shadow: 0 6px 16px rgba(37, 211, 102, 0.3);">💬 Demander une assistance</a>
     </div>
 </div>
 {% endblock %}
@@ -31,7 +31,9 @@
 <script>
     function montrerAide() {
         document.getElementById('zone-aide').style.display = 'block';
-        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        setTimeout(() => {
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        }, 100);
     }
 </script>
 {% endblock %}
