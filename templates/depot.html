@@ -1,69 +1,106 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SANKSI - Dépôt en cours</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
-        body { font-family: 'Inter', sans-serif; background-color: #0F172A; color: #F8FAFC; margin: 0; padding: 0; min-height: 100vh; display: flex; flex-direction: column; }
-        .app-container { max-width: 480px; margin: 0 auto; width: 100%; flex: 1; display: flex; flex-direction: column; background: #0F172A; padding: 20px; box-sizing: border-box; }
-        
-        .header-title { font-size: 20px; font-weight: 900; color: #38BDF8; text-align: center; margin-bottom: 20px; }
-        .step-card { background: #1E293B; border: 1px solid #334155; border-radius: 16px; padding: 20px; margin-bottom: 16px; }
-        .amount-big { font-size: 32px; font-weight: 900; color: #38BDF8; text-align: center; margin: 10px 0; }
-        .merchant-number { font-size: 24px; font-weight: 900; color: #FFFFFF; letter-spacing: 1px; text-align: center; background: #0F172A; padding: 12px; border-radius: 8px; border: 1px dashed #38BDF8; margin: 10px 0; }
-        .timer { font-size: 20px; font-weight: 800; color: #EF4444; text-align: center; margin: 10px 0; }
-        .input-field { width: 100%; padding: 14px; border-radius: 10px; background: #0F172A; border: 1px solid #334155; color: white; font-size: 16px; margin-top: 8px; box-sizing: border-box; }
-        .input-field:focus { outline: none; border-color: #38BDF8; }
-        .btn-pay { width: 100%; background: #38BDF8; color: #0F172A; font-weight: 900; font-size: 18px; border: none; border-radius: 12px; padding: 18px; cursor: pointer; margin-top: 20px; box-shadow: 0 4px 12px rgba(56, 189, 248, 0.3); }
-    </style>
-</head>
-<body>
+{% extends "base.html" %}
+{% block title %}SANKSI — Dépôt en cours{% endblock %}
 
-<div class="app-container">
-    <a href="/" style="color: #94A3B8; text-decoration: none; margin-bottom: 20px; display: inline-block;">← Retour</a>
-    <div class="header-title">Finaliser le dépôt</div>
+{% block content %}
+<div class="page fade-in">
+    <a href="/" class="back-link">← Retour</a>
+    <h1 class="page-title">Finaliser le dépôt</h1>
 
     <!-- Montant -->
-    <div class="step-card" style="text-align: center;">
-        <p style="color: #94A3B8; font-size: 14px; margin: 0;">Montant à envoyer</p>
+    <div class="card text-center">
+        <p class="text-muted" style="font-size: 14px; margin: 0;">Montant à envoyer</p>
         <div class="amount-big">{{ montant }} FCFA</div>
-        <p style="color: #38BDF8; font-size: 12px; font-weight: 700;">via {{ operateur }}</p>
+        <p style="color: var(--primary); font-size: 12px; font-weight: 800;">via {{ operateur }}</p>
     </div>
 
     <!-- Instructions -->
-    <div class="step-card">
-        <p style="font-weight: 800; font-size: 16px; margin: 0 0 10px 0;">1. Envoyez l'argent au numéro :</p>
-        <div class="merchant-number">+226 77 97 09 85</div>
-        
-        <p style="font-weight: 800; font-size: 16px; margin: 20px 0 10px 0;">2. Utilisez cette référence :</p>
-        <div class="merchant-number" style="color: #FCD34D; border-color: #FCD34D;">{{ reference }}</div>
-        
-        <div class="timer">⏳ 02:59</div>
+    <div class="card">
+        <div class="step-title">
+            <span class="step-num">1</span> Envoyez l'argent au numéro :
+        </div>
+        <div style="display: flex; gap: 8px; align-items: stretch;">
+            <div class="merchant-number" style="flex: 1; margin: 0;">+226 77 97 09 85</div>
+            <button type="button" class="btn btn-secondary" style="width: auto; padding: 0 16px; min-height: auto; border-radius: var(--radius);" onclick="copyText('+226 77 97 09 85')">📋</button>
+        </div>
+
+        <div class="step-title" style="margin-top: 20px;">
+            <span class="step-num">2</span> Utilisez cette référence :
+        </div>
+        <div style="display: flex; gap: 8px; align-items: stretch;">
+            <div class="merchant-number reference" style="flex: 1; margin: 0;">{{ reference }}</div>
+            <button type="button" class="btn btn-secondary" style="width: auto; padding: 0 16px; min-height: auto; border-radius: var(--radius);" onclick="copyText('{{ reference }}')">📋</button>
+        </div>
+
+        <div class="timer-wrap">
+            <div class="timer" id="timer">⏳ 03:00</div>
+        </div>
     </div>
 
-    <!-- Formulaire de validation -->
-    <form action="/depot/confirmer" method="POST">
+    <!-- Formulaire -->
+    <form action="/depot/confirmer" method="POST" style="margin-bottom: 20px;">
         <input type="hidden" name="montant" value="{{ montant }}">
         <input type="hidden" name="operateur" value="{{ operateur }}">
         <input type="hidden" name="reference" value="{{ reference }}">
 
-        <div class="step-card">
-            <label style="font-weight: 800; font-size: 14px;">3. Ton ID Joueur 1xBet</label>
+        <div class="card">
+            <label class="label">
+                <span class="step-num" style="display:inline-flex; margin-right:6px; width:20px; height:20px; font-size:11px;">3</span> 
+                Ton ID Joueur 1xBet
+            </label>
             <input type="text" name="id_1xbet" required class="input-field" placeholder="Ex: 123456789">
         </div>
 
-        <div class="step-card">
-            <label style="font-weight: 800; font-size: 14px;">4. Ton numéro de téléphone (celui du dépôt)</label>
-            <p style="color: #94A3B8; font-size: 11px; margin: 2px 0 0 0;">(Mets l'indicatif +226 si tu n'es pas au Burkina Faso)</p>
-            <input type="tel" name="telephone" required class="input-field" placeholder="Ex: 70 00 00 00 ou +226 70 00 00 00">
+        <div class="card">
+            <label class="label">
+                <span class="step-num" style="display:inline-flex; margin-right:6px; width:20px; height:20px; font-size:11px;">4</span> 
+                Ton numéro de téléphone
+            </label>
+            <p class="hint" style="margin-bottom: 10px;">(Celui utilisé pour le dépôt, ex: +226 70 00 00 00)</p>
+            <input type="tel" name="telephone" required class="input-field" placeholder="Ex: 70 00 00 00">
         </div>
 
-        <button type="submit" class="btn-pay">J'ai effectué le paiement</button>
+        <button type="submit" class="btn-main" style="margin: 0; width: 100%;">J'ai effectué le paiement</button>
     </form>
 </div>
+{% endblock %}
 
-</body>
-</html>
+{% block scripts %}
+<script>
+    // 1. Timer
+    let timeLeft = 180; // 3 minutes
+    const timerEl = document.getElementById('timer');
+    
+    const interval = setInterval(() => {
+        if (timeLeft <= 0) {
+            clearInterval(interval);
+            timerEl.innerHTML = '⚠️ Temps écoulé';
+            timerEl.style.background = 'var(--danger-soft)';
+            timerEl.style.color = 'var(--danger)';
+            return;
+        }
+        timeLeft--;
+        const m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+        const s = (timeLeft % 60).toString().padStart(2, '0');
+        timerEl.innerHTML = `⏳ ${m}:${s}`;
+    }, 1000);
+
+    // 2. Fonction Copier
+    function copyText(text) {
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('✅ Copié !', 'success');
+            }).catch(() => {
+                showToast('Erreur lors de la copie', 'error');
+            });
+        } else {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            ta.remove();
+            showToast('✅ Copié !', 'success');
+        }
+    }
+</script>
+{% endblock %}

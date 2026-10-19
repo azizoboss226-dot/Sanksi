@@ -585,3 +585,14 @@ button { font-family: inherit; cursor: pointer; border: none; }
 
 @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 .fade-in { animation: fadeIn 0.3s ease; }
+
+/* Animation succès (checkmark) */
+@keyframes successBounce {
+  0% { transform: scale(0); opacity: 0; }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); opacity: 1; }
+}
+.success-bounce {
+  animation: successBounce 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  display: inline-block;
+}

@@ -3,15 +3,33 @@
 
 {% block content %}
 <div class="page fade-in" style="justify-content:center;">
-    <div class="card text-center">
-        <div style="font-size:60px;margin-bottom:8px;">✅</div>
+    <div class="card text-center" style="padding: 32px 20px;">
+        <div class="success-bounce" style="font-size:60px;margin-bottom:16px;">✅</div>
         <h1 class="page-title">Demande reçue !</h1>
-        <p class="text-muted" style="font-size:14px;margin:0 0 16px 0;">Ta demande de dépôt de <b style="color:var(--text);">{{ montant }} FCFA</b> a bien été enregistrée.</p>
-        <p class="hint" style="margin:0;">Référence</p>
-        <div class="merchant-number reference" style="margin-top:6px;">{{ reference }}</div>
-        <p class="text-muted" style="font-size:12px;margin:12px 0 20px 0;">Un agent vérifie ton paiement et crédite ton compte sous peu.</p>
-        <a href="/historique" class="btn btn-primary">🔄 Vérifier mon statut</a>
-        <a href="/" class="btn btn-secondary" style="margin-top:10px;">Retour à l'accueil</a>
+        <p class="text-muted" style="font-size:14px;margin:0 0 20px 0;">
+            Ta demande de dépôt de <b style="color:var(--text);">{{ montant }} FCFA</b> a bien été enregistrée.
+        </p>
+
+        <div style="background: var(--bg-deep); border-radius: var(--radius); padding: 16px; margin-bottom: 20px;">
+            <p class="hint" style="margin:0 0 4px 0;">Référence de suivi</p>
+            <div style="font-size: 20px; font-weight: 900; color: var(--warning); letter-spacing: 1px;">{{ reference }}</div>
+        </div>
+
+        <p class="text-muted" style="font-size:12px;margin:0 0 24px 0;">
+            Un agent vérifie ton paiement et crédite ton compte sous peu.
+        </p>
+
+        <a href="/historique" class="btn btn-primary" style="margin-bottom: 10px;">🔄 Vérifier mon statut</a>
+        <a href="/" class="btn btn-secondary">Retour à l'accueil</a>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Lancer les confettis au chargement de la page
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(fireConfetti, 300);
+    });
+</script>
 {% endblock %}
