@@ -146,9 +146,10 @@ def confirmer_retrait():
     
     conn = sqlite3.connect('sanksi.db')
     c = conn.cursor()
-    c.execute("""INSERT INTO retraits (code_retrait, montant, operateur, nom, telephone, created_at) 
-                 VALUES (?, ?, ?, ?, ?, ?)""", 
-              (code_retrait, montant, operateur, nom, telephone, datetime.now().isoformat()))
+    # On met à jour la dernière demande de retrait qui était en 'prepare'
+    c.execute("""UPDATE retraits SET code_retrait = ?, nom = ?, telephone = ?, statut = 'en_attente' 
+                 WHERE id = (SELECT id FROM retraits WHERE statut = 'prepare' ORDER BY id DESC LIMIT 1)""",
+              (code_retrait, nom, telephone))
     conn.commit()
     conn.close()
 
@@ -197,6 +198,27 @@ def admin():
     retraits = c.fetchall()
     conn.close()
     return render_template("admin_dashboard.html", demandes=demandes, retraits=retraits)
+
+
+@app.route("/gestion-sanksi-2026/preparer/<int:id>", methods=["POST"])
+def admin_preparer_retrait(id):
+    if not session.get('admin'):
+        return redirect("/gestion-sanksi-2026")
+        
+    rue = request.form.get("rue", "")
+    ville = request.form.get("ville", "")
+    
+    # On enregistre la rue et la ville dans le champ code_retrait, séparés par un |
+    infos = f"{rue}|{ville}"
+    
+    conn = sqlite3.connect('sanksi.db')
+    c = conn.cursor()
+    c.execute("UPDATE retraits SET code_retrait = ?, statut = 'prepare' WHERE id = ?", (infos, id))
+    conn.commit()
+    conn.close()
+    
+    return redirect("/gestion-sanksi-2026")
+
 
 @app.route("/gestion-sanksi-2026/action/<type_op>/<int:id>/<action>")
 def admin_action(type_op, id, action):

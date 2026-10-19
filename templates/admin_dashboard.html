@@ -28,31 +28,45 @@
                 <p class="text-sm mb-3"><b>Tel :</b> {{ d[5] }}</p>
                 {% if d[6] == 'en_attente' %}
                 <div class="flex gap-2">
-                    <a href="/admin/action/depot/{{ d[0] }}/valider" class="flex-1 bg-green-600 text-center py-2 rounded-lg text-sm font-bold">Crédité</a>
-                    <a href="/admin/action/depot/{{ d[0] }}/refuser" class="flex-1 bg-red-600 text-center py-2 rounded-lg text-sm font-bold">Refusé</a>
+                    <a href="/gestion-sanksi-2026/action/depot/{{ d[0] }}/valider" class="flex-1 bg-green-600 text-center py-2 rounded-lg text-sm font-bold">Crédité</a>
+                    <a href="/gestion-sanksi-2026/action/depot/{{ d[0] }}/refuser" class="flex-1 bg-red-600 text-center py-2 rounded-lg text-sm font-bold">Refusé</a>
                 </div>
                 {% endif %}
             </div>
             {% endfor %}
         </div>
 
-        <h2 class="text-sm font-bold text-gray-400 mb-2">RETRAITS EN ATTENTE</h2>
+        <h2 class="text-sm font-bold text-gray-400 mb-2">RETRAITS</h2>
         <div class="space-y-3">
             {% for r in retraits %}
             <div class="bg-[#1E293B] p-4 rounded-xl border border-[#334155]">
                 <div class="flex justify-between items-start mb-2">
                     <div>
                         <p class="font-bold text-[#38BDF8]">{{ r[2] }} FCFA</p>
-                        <p class="text-xs text-gray-400">{{ r[3] }} · Code: {{ r[1] }}</p>
+                        <p class="text-xs text-gray-400">{{ r[3] }} · ID: {{ r[0] }}</p>
                     </div>
-                    <span class="text-xs px-2 py-1 rounded bg-{% if r[5]=='valide' %}green-900 text-green-300{% elif r[5]=='refuse' %}red-900 text-red-300{% else %}yellow-900 text-yellow-300{% endif %}">{{ r[5] }}</span>
+                    <span class="text-xs px-2 py-1 rounded bg-{% if r[6]=='valide' %}green-900 text-green-300{% elif r[6]=='refuse' %}red-900 text-red-300{% elif r[6]=='prepare' %}blue-900 text-blue-300{% else %}yellow-900 text-yellow-300{% endif %}">{{ r[6] }}</span>
                 </div>
-                <p class="text-sm mb-3"><b>Tel :</b> {{ r[4] }}</p>
-                {% if r[5] == 'en_attente' %}
+                
+                {% if r[6] == 'preparation' %}
+                <!-- Formulaire pour préparer le retrait -->
+                <form action="/gestion-sanksi-2026/preparer/{{ r[0] }}" method="POST" class="mt-3 bg-[#0F172A] p-3 rounded-lg">
+                    <p class="text-xs font-bold mb-2">Infos à envoyer au client :</p>
+                    <input type="text" name="rue" placeholder="Rue (ex: Rue 12.34)" required class="w-full p-2 mb-2 rounded bg-[#1E293B] border border-[#334155] text-sm text-white">
+                    <input type="text" name="ville" placeholder="Ville (ex: Ouagadougou)" required class="w-full p-2 mb-2 rounded bg-[#1E293B] border border-[#334155] text-sm text-white">
+                    <button type="submit" class="w-full bg-blue-600 text-white font-bold py-2 rounded-lg text-sm">Envoyer au client</button>
+                </form>
+                {% elif r[6] == 'prepare' %}
+                <p class="text-xs text-blue-300 mt-2">En attente du code de retrait du client...</p>
+                {% else %}
+                <p class="text-sm mb-2"><b>Nom :</b> {{ r[4] }}</p>
+                <p class="text-sm mb-3"><b>Tel :</b> {{ r[5] }}</p>
+                {% if r[6] == 'en_attente' %}
                 <div class="flex gap-2">
-                    <a href="/admin/action/retrait/{{ r[0] }}/valider" class="flex-1 bg-green-600 text-center py-2 rounded-lg text-sm font-bold">Payé</a>
-                    <a href="/admin/action/retrait/{{ r[0] }}/refuser" class="flex-1 bg-red-600 text-center py-2 rounded-lg text-sm font-bold">Refusé</a>
+                    <a href="/gestion-sanksi-2026/action/retrait/{{ r[0] }}/valider" class="flex-1 bg-green-600 text-center py-2 rounded-lg text-sm font-bold">Payé</a>
+                    <a href="/gestion-sanksi-2026/action/retrait/{{ r[0] }}/refuser" class="flex-1 bg-red-600 text-center py-2 rounded-lg text-sm font-bold">Refusé</a>
                 </div>
+                {% endif %}
                 {% endif %}
             </div>
             {% endfor %}

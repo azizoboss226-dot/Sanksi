@@ -18,23 +18,26 @@
     <h1 class="text-xl font-black text-[#38BDF8] text-center mb-6">Préparation du retrait</h1>
 
     <div class="card">
-        <p class="text-sm text-gray-400 text-center mb-4">Veuillez patienter, l'agent prépare vos informations de retrait...</p>
-        
-        <div class="bg-[#0F172A] p-4 rounded-xl border border-dashed border-[#38BDF8] mb-4">
-            <p class="text-xs text-gray-400 mb-1">Informations à mettre dans 1xBet :</p>
-            <div class="mb-2">
-                <span class="text-xs text-gray-500">Rue :</span>
-                <div class="info-val">{{ info_rue }}</div>
-            </div>
-            <div>
-                <span class="text-xs text-gray-500">Ville :</span>
-                <div class="info-val">{{ info_ville }}</div>
-            </div>
+        <div id="zone-attente">
+            <p class="text-sm text-gray-400 text-center mb-4">Veuillez patienter, l'agent prépare vos informations de retrait...</p>
+            <div style="text-align: center; font-size: 30px; margin: 20px 0;">⏳</div>
         </div>
-
-        <p class="text-xs text-gray-400 text-center mb-4">Une fois ces informations entrées sur 1xBet et le retrait lancé, clique sur le bouton ci-dessous.</p>
         
-        <a href="/retrait?montant={{ montant }}&operateur={{ operateur }}" class="block w-full bg-[#38BDF8] text-[#0F172A] font-black text-center py-4 rounded-xl mb-2 text-lg">✅ J'ai le code, continuer</a>
+        <div id="zone-infos" style="display: none;">
+            <p class="text-sm text-gray-400 text-center mb-4">L'agent a répondu ! Voici les infos à mettre dans 1xBet :</p>
+            <div class="bg-[#0F172A] p-4 rounded-xl border border-dashed border-[#38BDF8] mb-4">
+                <div class="mb-2">
+                    <span class="text-xs text-gray-500">Rue :</span>
+                    <div class="info-val" id="info-rue"></div>
+                </div>
+                <div>
+                    <span class="text-xs text-gray-500">Ville :</span>
+                    <div class="info-val" id="info-ville"></div>
+                </div>
+            </div>
+            <p class="text-xs text-gray-400 text-center mb-4">Une fois ces informations entrées sur 1xBet et le retrait lancé, clique sur le bouton ci-dessous.</p>
+            <a href="/retrait?montant={{ montant }}&operateur={{ operateur }}" class="block w-full bg-[#38BDF8] text-[#0F172A] font-black text-center py-4 rounded-xl mb-2 text-lg">✅ J'ai le code, continuer</a>
+        </div>
     </div>
 
     <div class="card" style="text-align: center;">
@@ -42,5 +45,27 @@
         <a href="https://wa.me/22677970985?text=Bonjour%2C%20j%27ai%20besoin%20d%27aide%20pour%20un%20retrait%20sur%20SANKSI" target="_blank" class="btn-wa">💬 Demander de l'aide sur WhatsApp</a>
     </div>
 </div>
+
+<script>
+    const retraitId = "{{ retrait_id }}";
+    
+    function verifierStatut() {
+        fetch(`/api/retrait/${retraitId}`)
+            .then(r => r.json())
+            .then(data => {
+                if (data.statut === 'prepare') {
+                    document.getElementById('zone-attente').style.display = 'none';
+                    document.getElementById('zone-infos').style.display = 'block';
+                    document.getElementById('info-rue').textContent = data.rue;
+                    document.getElementById('info-ville').textContent = data.ville;
+                    clearInterval(intervalId);
+                }
+            })
+            .catch(err => console.log("En attente..."));
+    }
+    
+    // On vérifie toutes les 3 secondes
+    const intervalId = setInterval(verifierStatut, 3000);
+</script>
 </body>
 </html>
