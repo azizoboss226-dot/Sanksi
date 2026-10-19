@@ -40,6 +40,13 @@
     </a>
 </div>
 
+
+<!-- Avis Clients -->
+<div id="zone-temoignages" style="display: none; padding: 0 20px 20px 20px;">
+    <p class="section-title" style="margin-bottom: 8px;">⭐ Ils nous font confiance</p>
+    <div id="liste-avis" style="display: flex; gap: 10px; overflow-x: auto; scrollbar-width: none;"></div>
+</div>
+
 <div class="bm-card">
     <div class="bm-logo">1X</div>
     <div>
@@ -91,6 +98,26 @@
 {% endblock %}
 
 {% block scripts %}
+
+<script>
+    fetch('/api/avis/recents').then(r => r.json()).then(data => {
+        if (data.avis && data.avis.length > 0) {
+            const container = document.getElementById('liste-avis');
+            document.getElementById('zone-temoignages').style.display = 'block';
+            data.avis.forEach(a => {
+                const stars = '⭐'.repeat(a.note);
+                container.innerHTML += `
+                    <div style="min-width: 200px; background: white; padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
+                        <div style="font-size: 12px; margin-bottom: 4px;">${stars}</div>
+                        <p style="font-size: 11px; font-style: italic; color: var(--text-muted); margin: 0 0 4px 0;">"${a.commentaire || 'Excellent !'}"</p>
+                        <p style="font-size: 10px; font-weight: 800; margin: 0; color: var(--primary);">- ${a.tel}</p>
+                    </div>
+                `;
+            });
+        }
+    });
+</script>
+
 <script>
     var montant = 0;
     var currentTab = 'depot';
@@ -164,6 +191,10 @@
     }
 
     function validerMontant() {
+        if (montant > 500000) {
+            showToast("Le montant maximum est de 500 000 FCFA", "error");
+            return;
+        }
         if (montant < 500) {
             showToast("Le montant minimum est de 500 FCFA", "error");
             var btn = document.getElementById('btn-main');

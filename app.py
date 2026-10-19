@@ -1,5 +1,7 @@
 from flask import Flask, render_template, request, redirect, session
 import sqlite3
+import threading
+import time
 import random
 import string
 from datetime import datetime
@@ -130,6 +132,9 @@ def depot():
 @app.route("/depot/confirmer", methods=["POST"])
 def confirmer_depot():
     telephone = request.form.get("telephone")
+    montant_check = int(request.form.get("montant", 0))
+    if montant_check < 500 or montant_check > 500000:
+        return "Montant invalide (Min: 500, Max: 500 000).", 400
     if is_blacklisted(telephone):
         return "Votre numéro a été bloqué par l'administrateur. Contactez le support.", 403
     montant = request.form.get("montant")
@@ -167,6 +172,8 @@ def confirmer_depot():
 def retrait_debut():
     if check_maintenance(): return render_template("maintenance.html")
     montant = request.args.get('montant', '0')
+    if not montant.isdigit() or int(montant) < 500 or int(montant) > 500000:
+        return "Montant invalide (Min: 500, Max: 500 000).", 400
     operateur = request.args.get('operateur', 'Orange')
     
     if request.method == "POST":
@@ -275,6 +282,35 @@ def confirmer_retrait():
     return render_template("confirmation_retrait.html", code_retrait=code_retrait, montant=montant)
 
 # --- HISTORIQUE ---
+
+
+@app.route("/api/avis", methods=["POST"])
+def api_ajouter_avis():
+    data = request.get_json()
+    telephone = data.get("telephone")
+    note = data.get("note")
+    commentaire = data.get("commentaire", "")
+    
+    if telephone and note:
+        # On anonymise le numéro (ex: 70****00)
+        tel_masque = telephone[:2] + "****" + telephone[-2:] if len(telephone) > 4 else "Client"
+        
+        conn = sqlite3.connect('sanksi.db')
+        c = conn.cursor()
+        c.execute("INSERT INTO avis (telephone, note, commentaire, date_avis) VALUES (?, ?, ?, datetime('now', 'localtime'))", (tel_masque, note, commentaire))
+        conn.commit()
+        conn.close()
+        return {"ok": True}
+    return {"ok": False}, 400
+
+@app.route("/api/avis/recents")
+def api_avis_recents():
+    conn = sqlite3.connect('sanksi.db')
+    c = conn.cursor()
+    c.execute("SELECT telephone, note, commentaire FROM avis ORDER BY id DESC LIMIT 5")
+    rows = c.fetchall()
+    conn.close()
+    return {"avis": [{"tel": r[0], "note": r[1], "commentaire": r[2]} for r in rows]}
 
 @app.route("/faq")
 def faq():
@@ -652,4 +688,46 @@ def page_not_found(e):
 @app.errorhandler(500)
 def internal_server_error(e):
     return render_template('500.html'), 500
+
+
+
+def envoyer_rapport_quotidien():
+    try:
+        conn = sqlite3.connect('sanksi.db')
+        c = conn.cursor()
+        
+        c.execute("SELECT COUNT(*), SUM(montant) FROM demandes WHERE statut = 'valide' AND date(created_at) = date('now', 'localtime')")
+        res_d = c.fetchone()
+        c.execute("SELECT COUNT(*), SUM(montant) FROM retraits WHERE statut = 'valide' AND date(created_at) = date('now', 'localtime')")
+        res_r = c.fetchone()
+        conn.close()
+
+        nb_d = res_d[0] or 0
+        mt_d = res_d[1] or 0
+        nb_r = res_r[0] or 0
+        mt_r = res_r[1] or 0
+        benefice = mt_d - mt_r
+
+        msg = f"📊 <b>BILAN DU JOUR</b>\n\n"
+        msg += f"🟢 Dépôts validés : <b>{nb_d}</b> ({mt_d} FCFA)\n"
+        msg += f"🔴 Retraits payés : <b>{nb_r}</b> ({mt_r} FCFA)\n"
+        msg += f"💼 Bénéfice net : <b>{benefice} FCFA</b>\n\n"
+        msg += "Bonne nuit ! 🌙"
+
+        envoyer_telegram(msg)
+    except Exception as e:
+        print("Erreur rapport:", e)
+
+def boucle_rapport():
+    while True:
+        maintenant = datetime.now()
+        if maintenant.hour == 23 and maintenant.minute == 59:
+            envoyer_rapport_quotidien()
+            time.sleep(60) # Éviter d'envoyer plusieurs fois dans la même minute
+        time.sleep(30)
+
+# Lancer le thread au démarrage de l'app
+thread_rapport = threading.Thread(target=boucle_rapport)
+thread_rapport.daemon = True
+thread_rapport.start()
 
