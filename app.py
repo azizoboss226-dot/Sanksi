@@ -372,12 +372,45 @@ def historique():
 @app.route("/gestion-sanksi-2026", methods=["GET", "POST"])
 def admin():
     if request.method == "POST":
+        ip = request.remote_addr or "inconnue"
+        conn_sec = sqlite3.connect('sanksi.db')
+        c_sec = conn_sec.cursor()
+        
+        # Vérifier si l'IP est bloquée
+        c_sec.execute("SELECT blocked_until FROM login_attempts WHERE ip = ?", (ip,))
+        row_sec = c_sec.fetchone()
+        if row_sec and row_sec[0]:
+            blocked_until = datetime.strptime(row_sec[0], '%Y-%m-%d %H:%M:%S')
+            if datetime.now() < blocked_until:
+                conn_sec.close()
+                temps_restant = int((blocked_until - datetime.now()).total_seconds() / 60)
+                return render_template("admin_login.html", erreur=f"Trop de tentatives. Réessayez dans {temps_restant} minutes.")
+        
         password = request.form.get("password")
         if password == os.environ.get("ADMIN_PASSWORD"):
             session['admin'] = True
+            c_sec.execute("DELETE FROM login_attempts WHERE ip = ?", (ip,))
+            conn_sec.commit()
+            conn_sec.close()
             return redirect("/gestion-sanksi-2026")
         else:
-            return render_template("admin_login.html", erreur="Mot de passe incorrect")
+            # Enregistrer l'échec
+            c_sec.execute("SELECT attempts FROM login_attempts WHERE ip = ?", (ip,))
+            row_att = c_sec.fetchone()
+            attempts = (row_att[0] if row_att else 0) + 1
+            
+            if attempts >= 5:
+                # Bloquer pendant 15 minutes
+                blocked_until = (datetime.now() + timedelta(minutes=15)).strftime('%Y-%m-%d %H:%M:%S')
+                c_sec.execute("INSERT OR REPLACE INTO login_attempts (ip, attempts, blocked_until) VALUES (?, ?, ?)", (ip, attempts, blocked_until))
+                conn_sec.commit()
+                conn_sec.close()
+                return render_template("admin_login.html", erreur="Trop de tentatives. Compte bloqué pendant 15 minutes.")
+            else:
+                c_sec.execute("INSERT OR REPLACE INTO login_attempts (ip, attempts, blocked_until) VALUES (?, ?, NULL)", (ip, attempts))
+                conn_sec.commit()
+                conn_sec.close()
+                return render_template("admin_login.html", erreur="Mot de passe incorrect")
             
     if not session.get('admin'):
         return render_template("admin_login.html", erreur=None)
