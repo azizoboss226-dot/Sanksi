@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SANKSI - Nouveau retrait</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #0F172A; color: #F8FAFC; margin: 0; padding: 0; min-height: 100vh; display: flex; flex-direction: column; }
+        .app-container { max-width: 480px; margin: 0 auto; width: 100%; flex: 1; display: flex; flex-direction: column; background: #0F172A; padding: 20px; box-sizing: border-box; justify-content: center; }
+        .card { background: #1E293B; border: 1px solid #334155; border-radius: 20px; padding: 24px; margin-bottom: 16px; text-align: center; }
+        .btn-yes { width: 100%; background: #38BDF8; color: #0F172A; font-weight: 900; font-size: 16px; border: none; border-radius: 12px; padding: 16px; cursor: pointer; margin-bottom: 12px; }
+        .btn-no { width: 100%; background: transparent; color: #94A3B8; font-weight: 800; font-size: 16px; border: 1px solid #334155; border-radius: 12px; padding: 16px; cursor: pointer; display: block; text-decoration: none; box-sizing: border-box; }
+        .btn-wa { display: block; text-align: center; background: #25D366; color: white; font-weight: 800; padding: 14px; border-radius: 12px; text-decoration: none; margin-top: 16px; }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <div class="card">
+        <div style="font-size: 50px; margin-bottom: 16px;">🤔</div>
+        <h1 class="text-xl font-black text-white mb-4">C'est ta première fois pour un retrait sur 1xBet ?</h1>
+        <p class="text-sm text-gray-400 mb-6">Si oui, un agent peut t'accompagner pas à pas pour éviter les erreurs.</p>
+        
+        <button onclick="montrerAide()" class="btn-yes">Oui, c'est ma première fois</button>
+        <a href="/retrait/attente?montant={{ montant }}&operateur={{ operateur }}" class="btn-no">Non, je sais comment faire</a>
+    </div>
+
+    <div id="zone-aide" class="card" style="display: none; border-color: #25D366;">
+        <p class="text-sm font-bold text-white mb-2">Pas de problème !</p>
+        <p class="text-xs text-gray-400 mb-4">Clique sur le bouton ci-dessous pour être mis en relation avec un agent qui va te guider.</p>
+        <a href="https://wa.me/22677970985?text=Bonjour%2C%20c%27est%20ma%20premiere%20fois%20pour%20un%20retrait%201xBet%20sur%20SANKSI%2C%20j%27ai%20besoin%20d%27aide" target="_blank" class="btn-wa">💬 Demander une assistance</a>
+    </div>
+</div>
+
+<script>
+    function montrerAide() {
+        document.getElementById('zone-aide').style.display = 'block';
+        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    }
+</script>
+</body>
+</html>

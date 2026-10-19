@@ -1,57 +1,38 @@
 from flask import Flask, render_template, request, redirect, session
-import os
-import urllib.request
-import urllib.parse
 import sqlite3
 import random
 import string
 from datetime import datetime
+import os
+import urllib.request
+import urllib.parse
 
 app = Flask(__name__)
-app.secret_key = 'sanksi_secret_key_2026' # Nécessaire pour la session admin
+app.secret_key = 'sanksi_secret_key_2026'
 application = app 
 
-# --- Initialisation de la base de données ---
-
-# --- Fonction pour envoyer un message sur Telegram ---
 def envoyer_telegram(message):
     token = os.environ.get("TELEGRAM_TOKEN")
     chat_id = os.environ.get("TELEGRAM_CHAT_ID")
     if not token or not chat_id:
-        print("[telegram] Token ou Chat ID manquant")
         return
     try:
         url = f"https://api.telegram.org/bot{token}/sendMessage"
         data = urllib.parse.urlencode({"chat_id": chat_id, "text": message, "parse_mode": "HTML"}).encode()
         urllib.request.urlopen(url, data=data, timeout=5)
-        print("[telegram] Notification envoyée !")
-    except Exception as e:
-        print(f"[telegram] Erreur : {e}")
+    except Exception:
+        pass
 
 def init_db():
     conn = sqlite3.connect('sanksi.db')
     c = conn.cursor()
-    # Table des dépôts
     c.execute('''CREATE TABLE IF NOT EXISTS demandes (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        reference TEXT,
-        montant INTEGER,
-        operateur TEXT,
-        id_1xbet TEXT,
-        telephone TEXT,
-        statut TEXT DEFAULT 'en_attente',
-        created_at TEXT
-    )''')
-    # Table des retraits
+        id INTEGER PRIMARY KEY AUTOINCREMENT, reference TEXT, montant INTEGER,
+        operateur TEXT, id_1xbet TEXT, telephone TEXT,
+        statut TEXT DEFAULT 'en_attente', created_at TEXT)''')
     c.execute('''CREATE TABLE IF NOT EXISTS retraits (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        code_retrait TEXT,
-        montant INTEGER,
-        operateur TEXT,
-        telephone TEXT,
-        statut TEXT DEFAULT 'en_attente',
-        created_at TEXT
-    )''')
+        id INTEGER PRIMARY KEY AUTOINCREMENT, code_retrait TEXT, montant INTEGER,
+        operateur TEXT, nom TEXT, telephone TEXT, statut TEXT DEFAULT 'en_attente', created_at TEXT)''')
     conn.commit()
     conn.close()
 
@@ -66,7 +47,7 @@ def generer_reference():
 def index():
     return render_template("index.html")
 
-# --- ROUTES DEPOT ---
+# --- DEPOT ---
 @app.route("/depot")
 def depot():
     montant = request.args.get('montant', '0')
@@ -90,13 +71,29 @@ def confirmer_depot():
     conn.commit()
     conn.close()
 
-    # 🔔 Notification Telegram
-    msg = f"🚨 <b>NOUVEAU DÉPÔT</b>\n\n💰 Montant : <b>{montant} FCFA</b>\n📱 Opérateur : {operateur}\n🆔 ID 1xBet : <b>{id_1xbet}</b>\n📞 Téléphone : {telephone}\n🔖 Réf : {reference}"
+    msg = f"🚨 <b>NOUVEAU DÉPÔT</b>\n\n💰 Montant : <b>{montant} FCFA</b>\n📱 Opérateur : {operateur}\n🆔 ID 1xbet : <b>{id_1xbet}</b>\n📞 Téléphone : {telephone}\n🔖 Réf : {reference}"
     envoyer_telegram(msg)
 
     return render_template("confirmation_depot.html", reference=reference, montant=montant)
 
-# --- ROUTES RETRAIT ---
+# --- RETRAIT : ETAPE 1 (Question) ---
+@app.route("/retrait/debut")
+def retrait_debut():
+    montant = request.args.get('montant', '0')
+    operateur = request.args.get('operateur', 'Orange')
+    return render_template("retrait_debut.html", montant=montant, operateur=operateur)
+
+# --- RETRAIT : ETAPE 2 (Attente des infos) ---
+@app.route("/retrait/attente")
+def retrait_attente():
+    montant = request.args.get('montant', '0')
+    operateur = request.args.get('operateur', 'Orange')
+    # Simulation des infos admin
+    info_rue = "Rue 12.34, Secteur 15"
+    info_ville = "Ouagadougou"
+    return render_template("retrait_attente.html", montant=montant, operateur=operateur, info_rue=info_rue, info_ville=info_ville)
+
+# --- RETRAIT : ETAPE 3 (Finalisation) ---
 @app.route("/retrait")
 def retrait():
     montant = request.args.get('montant', '0')
@@ -108,24 +105,23 @@ def confirmer_retrait():
     montant = request.form.get("montant")
     operateur = request.form.get("operateur")
     code_retrait = request.form.get("code_retrait")
+    nom = request.form.get("nom")
     telephone = request.form.get("telephone")
     
     conn = sqlite3.connect('sanksi.db')
     c = conn.cursor()
-    c.execute("""INSERT INTO retraits (code_retrait, montant, operateur, telephone, created_at) 
-                 VALUES (?, ?, ?, ?, ?)""", 
-              (code_retrait, montant, operateur, telephone, datetime.now().isoformat()))
+    c.execute("""INSERT INTO retraits (code_retrait, montant, operateur, nom, telephone, created_at) 
+                 VALUES (?, ?, ?, ?, ?, ?)""", 
+              (code_retrait, montant, operateur, nom, telephone, datetime.now().isoformat()))
     conn.commit()
     conn.close()
 
-    # 🔔 Notification Telegram
-    msg = f"🚨 <b>NOUVEAU RETRAIT</b>\n\n💰 Montant : <b>{montant} FCFA</b>\n📱 Opérateur : {operateur}\n🆔 Code retrait : <b>{code_retrait}</b>\n📞 Téléphone : {telephone}"
+    msg = f"🚨 <b>NOUVEAU RETRAIT</b>\n\n💰 Montant : <b>{montant} FCFA</b>\n📱 Opérateur : {operateur}\n🆔 Code retrait : <b>{code_retrait}</b>\n👤 Nom : {nom}\n📞 Téléphone : {telephone}"
     envoyer_telegram(msg)
 
     return render_template("confirmation_retrait.html", code_retrait=code_retrait, montant=montant)
 
-# --- ROUTES ADMIN ---
-
+# --- HISTORIQUE ---
 @app.route("/historique", methods=["GET", "POST"])
 def historique():
     demandes = []
@@ -143,12 +139,12 @@ def historique():
             conn.close()
     return render_template("historique.html", demandes=demandes, retraits=retraits, tel=tel)
 
-
+# --- ADMIN ---
 @app.route("/gestion-sanksi-2026", methods=["GET", "POST"])
 def admin():
     if request.method == "POST":
         password = request.form.get("password")
-        if password == os.environ.get("ADMIN_PASSWORD", "SanksiAdmin2026"): # Mot de passe admin (tu pourras le changer)
+        if password == os.environ.get("ADMIN_PASSWORD", "SanksiAdmin2026"):
             session['admin'] = True
             return redirect("/gestion-sanksi-2026")
         else:
