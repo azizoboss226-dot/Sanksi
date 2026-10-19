@@ -340,6 +340,40 @@ def admin_preparer_retrait(id):
     return redirect("/gestion-sanksi-2026")
 
 
+
+def envoyer_push(telephone, titre, message):
+    if not telephone: return
+    try:
+        conn = sqlite3.connect('sanksi.db')
+        c = conn.cursor()
+        c.execute("SELECT endpoint, p256dh, auth FROM push_subs WHERE telephone = ?", (telephone,))
+        subs = c.fetchall()
+        conn.close()
+        
+        for sub in subs:
+            subscription_info = {
+                "endpoint": sub[0],
+                "keys": {"p256dh": sub[1], "auth": sub[2]}
+            }
+            try:
+                webpush(
+                    subscription_info=subscription_info,
+                    data=json.dumps({"title": titre, "body": message}),
+                    vapid_private_key=os.environ.get("VAPID_PRIVATE_KEY"),
+                    vapid_claims={"sub": "mailto:contact@sanksi.com"}
+                )
+            except WebPushException as ex:
+                print("Erreur push:", ex)
+                # Si l'abonnement est mort/expiré, on le supprime
+                if ex.response and ex.response.status_code in [404, 410]:
+                    conn = sqlite3.connect('sanksi.db')
+                    c = conn.cursor()
+                    c.execute("DELETE FROM push_subs WHERE endpoint = ?", (sub[0],))
+                    conn.commit()
+                    conn.close()
+    except Exception as e:
+        print("Erreur globale push:", e)
+
 @app.route("/gestion-sanksi-2026/action/<type_op>/<int:id>/<action>")
 def admin_action(type_op, id, action):
     if not session.get('admin'):
