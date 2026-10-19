@@ -35,11 +35,33 @@
     {% if tel %}
     <div class="card" style="background: linear-gradient(135deg, #FFFBEB, #FEF3C7); border: 1.5px solid #F59E0B; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center;">
         <div>
-            <p style="font-weight: 900; color: #B45309; margin: 0; font-size: 16px;">⭐ Tes points SANKSI</p>
+            
+    {% set badge_name = "Nouveau" %}
+    {% set badge_color = "var(--text-muted)" %}
+    {% set badge_bg = "var(--bg-deep)" %}
+    {% set badge_icon = "🌱" %}
+    
+    {% if total_depots >= 100000 %}
+        {% set badge_name = "Or" %}{% set badge_color = "#B45309" %}{% set badge_bg = "#FEF3C7" %}{% set badge_icon = "🥇" %}
+    {% elif total_depots >= 25000 %}
+        {% set badge_name = "Argent" %}{% set badge_color = "#475569" %}{% set badge_bg = "#F1F5F9" %}{% set badge_icon = "🥈" %}
+    {% elif total_depots > 0 %}
+        {% set badge_name = "Bronze" %}{% set badge_color = "#92400E" %}{% set badge_bg = "#FDE68A" %}{% set badge_icon = "🥉" %}
+    {% endif %}
+
+        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+            <div>
+                <p style="font-weight: 900; color: #B45309; margin: 0; font-size: 16px;">⭐ Tes points SANKSI</p>
+                <div style="display: flex; align-items: center; gap: 6px; margin-top: 6px;">
+                    <span style="font-size: 18px;">{{ badge_icon }}</span>
+                    <span style="font-size: 12px; font-weight: 800; color: {{ badge_color }}; background: {{ badge_bg }}; padding: 4px 10px; border-radius: 12px;">Statut {{ badge_name }}</span>
+                </div>
+            </div>
+            <div style="font-size: 32px; font-weight: 900; color: #F59E0B;">{{ points }}</div>
+        </div>
             <p style="font-size: 12px; color: #92400E; margin: 4px 0 0 0;">Continue tes dépôts pour gagner des bonus !</p>
         </div>
-        <div style="font-size: 32px; font-weight: 900; color: #F59E0B;">{{ points }}</div>
-    </div>
+        
     {% endif %}
 
     {% if tel %}

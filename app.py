@@ -294,8 +294,9 @@ def historique():
             c.execute("SELECT * FROM retraits WHERE telephone = ? ORDER BY id DESC", (tel,))
             retraits = c.fetchall()
             conn.close()
-    # Récupérer les points de fidélité
+    # Récupérer les points de fidélité et le total
     points_fidelite = 0
+    total_depots_valides = 0
     if tel:
         c.execute("SELECT points FROM fidelite WHERE telephone = ?", (tel,))
         row_pts = c.fetchone()
@@ -303,7 +304,7 @@ def historique():
         conn = sqlite3.connect('sanksi.db') # on rouvre car la connexion a pu fermer dans le if
         conn.close()
         
-    return render_template("historique.html", demandes=demandes, retraits=retraits, tel=tel, points=points_fidelite)
+    return render_template("historique.html", demandes=demandes, retraits=retraits, tel=tel, points=points_fidelite, total_depots=total_depots_valides)
 
 # --- ADMIN ---
 @app.route("/gestion-sanksi-2026", methods=["GET", "POST"])
@@ -322,12 +323,26 @@ def admin():
     # --- NETTOYAGE AUTOMATIQUE ---
     conn_clean = sqlite3.connect('sanksi.db')
     c_clean = conn_clean.cursor()
-    # Expirer les dépôts en attente depuis plus de 30 minutes
-    c_clean.execute("UPDATE demandes SET statut = 'expire' WHERE statut = 'en_attente' AND created_at < datetime('now', '-30 minutes', 'localtime')")
-    # Expirer les retraits en attente depuis plus de 1 heure
-    c_clean.execute("UPDATE retraits SET statut = 'expire' WHERE statut = 'en_attente' AND created_at < datetime('now', '-1 hour', 'localtime')")
+    # --- NETTOYAGE AVEC NOTIFICATION PUSH ---
+    # 1. Dépôts expirés
+    c_clean.execute("SELECT id, telephone, montant FROM demandes WHERE statut = 'en_attente' AND created_at < datetime('now', '-30 minutes', 'localtime')")
+    depots_expires = c_clean.fetchall()
+    for d in depots_expires:
+        c_clean.execute("UPDATE demandes SET statut = 'expire' WHERE id = ?", (d[0],))
+        if d[1]:
+            envoyer_push(d[1], "⏰ Dépôt expiré", f"Ta demande de {d[2]} FCFA a expiré. Merci de recommencer.")
+            
+    # 2. Retraits expirés
+    c_clean.execute("SELECT id, telephone, montant FROM retraits WHERE statut = 'en_attente' AND created_at < datetime('now', '-1 hour', 'localtime')")
+    retraits_expires = c_clean.fetchall()
+    for r in retraits_expires:
+        c_clean.execute("UPDATE retraits SET statut = 'expire' WHERE id = ?", (r[0],))
+        if r[1]:
+            envoyer_push(r[1], "⏰ Retrait expiré", f"Ta demande de {r[2]} FCFA a expiré. Merci de recommencer.")
+            
     conn_clean.commit()
     conn_clean.close()
+    # ---------------------------------------
     # ------------------------------
 
     conn = sqlite3.connect('sanksi.db')
