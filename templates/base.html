@@ -10,6 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='icon-192.png') }}">
     {% block head %}{% endblock %}
 </head>
 <body>
@@ -166,6 +167,62 @@
         }
         maj();
         setInterval(maj, 5000);
+    })();
+    </script>
+    <script>
+    (function () {
+        var path = location.pathname;
+        var container = document.querySelector('.app-container');
+        if (!container) return;
+
+        // ---- Bandeau notifications (pages dépôt et retrait) ----
+        if ((path.indexOf('/depot') === 0 || path.indexOf('/retrait') === 0)
+            && window.Notification && 'serviceWorker' in navigator
+            && Notification.permission === 'default') {
+            var estDepot = path.indexOf('/depot') === 0;
+            var b = document.createElement('button');
+            b.id = 'btn-push';
+            b.type = 'button';
+            b.className = 'btn btn-primary';
+            b.style.cssText = 'width:calc(100% - 40px);margin:12px 20px 0 20px;font-size:14px;';
+            b.textContent = '🔔 Active les notifications pour recevoir le statut final de ton ' + (estDepot ? 'dépôt' : 'retrait');
+            b.onclick = function () {
+                Notification.requestPermission().then(function () { b.remove(); });
+            };
+            var h = container.querySelector('.app-header');
+            if (h) h.after(b); else container.prepend(b);
+        }
+
+        // ---- Carte « Télécharger l'application » (accueil) ----
+        if (path === '/') {
+            var installee = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || navigator.standalone;
+            if (!installee) {
+                var evt = null;
+                var ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
+                window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); evt = e; });
+
+                var carte = document.createElement('div');
+                carte.className = 'bm-card';
+                carte.innerHTML = '<div class="bm-logo" style="font-size:24px;">📲</div>'
+                    + '<div style="flex:1;"><div class="bm-name">Télécharger l\'application</div>'
+                    + '<div class="bm-subtitle">Accès rapide et notifications</div></div>'
+                    + '<button type="button" class="header-link" id="btn-install" style="border:none;">Installer</button>';
+                var ref = container.querySelector('.bm-card');
+                if (ref) container.insertBefore(carte, ref);
+                else container.appendChild(carte);
+
+                document.getElementById('btn-install').onclick = function () {
+                    if (evt) {
+                        evt.prompt();
+                    } else if (ios) {
+                        alert("Sur iPhone : appuie sur le bouton Partager de Safari, puis sur « Sur l'écran d'accueil ».");
+                    } else {
+                        alert("Ouvre le menu de ton navigateur (les 3 points), puis appuie sur « Installer l'application » ou « Ajouter à l'écran d'accueil ».");
+                    }
+                };
+                window.addEventListener('appinstalled', function () { carte.remove(); });
+            }
+        }
     })();
     </script>
     {% block scripts %}{% endblock %}
