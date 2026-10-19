@@ -23,7 +23,7 @@
     <form method="POST" class="card" style="margin-bottom: 24px;">
         <label class="label">Entre ton numéro de téléphone</label>
         <div style="display: flex; gap: 8px;">
-            <input type="tel" name="telephone" value="{{ tel }}" required class="input-field" placeholder="Ex: 70 00 00 00" style="flex: 1;">
+            <input type="tel" pattern="[0-9+ ]{8,}" title="Le numéro doit contenir au moins 8 chiffres" name="telephone" value="{{ tel }}" required class="input-field" placeholder="Ex: 70 00 00 00" style="flex: 1;">
             <button type="submit" class="btn btn-primary" style="width: auto; padding: 0 20px; min-height: 50px;">Voir</button>
         </div>
     </form>
@@ -79,6 +79,14 @@
                 </div>
                 <p class="text-muted" style="font-size: 13px; margin: 4px 0;">ID 1xBet : <b style="color: var(--text);">{{ d[4] }}</b></p>
                 <p class="text-muted" style="font-size: 13px; margin: 4px 0;">Réf : <b style="color: var(--text);">{{ d[1] }}</b></p>
+
+                {% if d[-1] %}
+                <div style="background: var(--danger-soft); border-left: 3px solid var(--danger); padding: 8px 12px; margin-top: 10px; border-radius: 4px;">
+                    <p style="margin: 0; font-size: 12px; font-weight: 800; color: var(--danger);">📩 Message de l'agent :</p>
+                    <p style="margin: 4px 0 0 0; font-size: 13px;">{{ d[-1] }}</p>
+                </div>
+                {% endif %}
+
             </div>
             {% endfor %}
         {% else %}
@@ -101,6 +109,14 @@
                     {% endif %}
                 </div>
                 <p class="text-muted" style="font-size: 13px; margin: 4px 0;">Code retrait : <b style="color: var(--text);">{{ r[1] }}</b></p>
+
+                {% if r[-1] %}
+                <div style="background: var(--danger-soft); border-left: 3px solid var(--danger); padding: 8px 12px; margin-top: 10px; border-radius: 4px;">
+                    <p style="margin: 0; font-size: 12px; font-weight: 800; color: var(--danger);">📩 Message de l'agent :</p>
+                    <p style="margin: 4px 0 0 0; font-size: 13px;">{{ r[-1] }}</p>
+                </div>
+                {% endif %}
+
             </div>
             {% endfor %}
         {% else %}

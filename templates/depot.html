@@ -72,7 +72,7 @@
                 Ton numéro de téléphone
             </label>
             <p class="hint" style="margin-bottom: 10px;">(Celui utilisé pour le dépôt, ex: +226 70 00 00 00)</p>
-            <input type="tel" name="telephone" required class="input-field" placeholder="Ex: 70 00 00 00">
+            <input type="tel" pattern="[0-9+ ]{8,}" title="Le numéro doit contenir au moins 8 chiffres" name="telephone" required class="input-field" placeholder="Ex: 70 00 00 00">
         </div>
 
         <button type="submit" class="btn-main" style="margin: 0; width: 100%;">J'ai effectué le paiement</button>

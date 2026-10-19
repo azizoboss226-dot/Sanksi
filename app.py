@@ -137,6 +137,16 @@ def confirmer_depot():
     id_1xbet = request.form.get("id_1xbet")
     telephone = request.form.get("telephone")
     
+    # --- ANTI-SPAM DEPOT ---
+    conn_spam = sqlite3.connect('sanksi.db')
+    c_spam = conn_spam.cursor()
+    c_spam.execute("SELECT COUNT(*) FROM demandes WHERE telephone = ? AND statut = 'en_attente'", (telephone,))
+    if c_spam.fetchone()[0] >= 2:
+        conn_spam.close()
+        return render_template("erreur.html", message="Tu as déjà 2 demandes de dépôt en attente. Merci de patienter ou de contacter le support.")
+    conn_spam.close()
+    # -----------------------
+    
     conn = sqlite3.connect('sanksi.db')
     c = conn.cursor()
     c.execute("""INSERT INTO demandes (reference, montant, operateur, id_1xbet, telephone, parrain, created_at) 
@@ -162,6 +172,16 @@ def retrait_debut():
         telephone = request.form.get("telephone")
         if is_blacklisted(telephone):
             return "Votre numéro a été bloqué par l'administrateur. Contactez le support.", 403
+            
+        # --- ANTI-SPAM RETRAIT ---
+        conn_spam = sqlite3.connect('sanksi.db')
+        c_spam = conn_spam.cursor()
+        c_spam.execute("SELECT COUNT(*) FROM retraits WHERE telephone = ? AND statut IN ('en_attente', 'preparation', 'prepare')", (telephone,))
+        if c_spam.fetchone()[0] >= 2:
+            conn_spam.close()
+            return render_template("erreur.html", message="Tu as déjà 2 demandes de retrait en cours. Merci de patienter ou de contacter le support.")
+        conn_spam.close()
+        # -------------------------
         # On redirige vers l'attente avec le téléphone
         return redirect(f"/retrait/attente?montant={montant}&operateur={operateur}&telephone={telephone}")
         
@@ -346,7 +366,7 @@ def admin():
                            total_retraits_count=total_retraits_count,
                            total_retraits_montant=total_retraits_montant,
                            attente_depots=attente_depots,
-                           attente_retraits=attente_retraits, is_maintenance=check_maintenance())
+                           attente_retraits=attente_retraits, top_parrains=top_parrains, is_maintenance=check_maintenance())
 
 
 

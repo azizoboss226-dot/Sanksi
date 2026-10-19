@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}SANKSI - Action impossible{% endblock %}
+
+{% block content %}
+<div class="page fade-in" style="justify-content:center; text-align:center;">
+    <div class="card">
+        <div style="font-size:70px; margin-bottom: 10px;">🛑</div>
+        <h1 class="page-title">Oups !</h1>
+        <p class="text-muted" style="margin-bottom: 24px;">{{ message }}</p>
+        <a href="/historique" class="btn btn-primary" style="margin-bottom: 12px;">Voir mon historique</a>
+        <a href="https://wa.me/22603292027" target="_blank" class="btn btn-secondary">Contacter le support</a>
+    </div>
+</div>
+{% endblock %}

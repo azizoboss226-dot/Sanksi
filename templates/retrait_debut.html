@@ -12,7 +12,7 @@
         
         <form method="POST" action="/retrait/debut?montant={{ montant }}&operateur={{ operateur }}">
             <label class="label" style="text-align:left;">Numéro qui recevra l'argent :</label>
-            <input type="tel" name="telephone" required class="input-field" placeholder="Ex: 70 00 00 00 ou +226..." style="margin-bottom: 20px;">
+            <input type="tel" pattern="[0-9+ ]{8,}" title="Le numéro doit contenir au moins 8 chiffres" name="telephone" required class="input-field" placeholder="Ex: 70 00 00 00 ou +226..." style="margin-bottom: 20px;">
             
             <button type="button" onclick="montrerAide()" class="btn btn-primary" style="margin-bottom:12px;">Oui, c'est ma première fois</button>
             <button type="submit" class="btn btn-secondary">Non, je sais comment faire</button>
