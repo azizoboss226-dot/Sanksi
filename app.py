@@ -1,5 +1,7 @@
 from flask import Flask, render_template, request, redirect, session
 import os
+import urllib.request
+import urllib.parse
 import sqlite3
 import random
 import string
@@ -10,6 +12,22 @@ app.secret_key = 'sanksi_secret_key_2026' # Nécessaire pour la session admin
 application = app 
 
 # --- Initialisation de la base de données ---
+
+# --- Fonction pour envoyer un message sur Telegram ---
+def envoyer_telegram(message):
+    token = os.environ.get("TELEGRAM_TOKEN")
+    chat_id = os.environ.get("TELEGRAM_CHAT_ID")
+    if not token or not chat_id:
+        print("[telegram] Token ou Chat ID manquant")
+        return
+    try:
+        url = f"https://api.telegram.org/bot{token}/sendMessage"
+        data = urllib.parse.urlencode({"chat_id": chat_id, "text": message, "parse_mode": "HTML"}).encode()
+        urllib.request.urlopen(url, data=data, timeout=5)
+        print("[telegram] Notification envoyée !")
+    except Exception as e:
+        print(f"[telegram] Erreur : {e}")
+
 def init_db():
     conn = sqlite3.connect('sanksi.db')
     c = conn.cursor()
@@ -71,6 +89,11 @@ def confirmer_depot():
               (reference, montant, operateur, id_1xbet, telephone, datetime.now().isoformat()))
     conn.commit()
     conn.close()
+
+    # 🔔 Notification Telegram
+    msg = f"🚨 <b>NOUVEAU DÉPÔT</b>\n\n💰 Montant : <b>{montant} FCFA</b>\n📱 Opérateur : {operateur}\n🆔 ID 1xBet : <b>{id_1xbet}</b>\n📞 Téléphone : {telephone}\n🔖 Réf : {reference}"
+    envoyer_telegram(msg)
+
     return render_template("confirmation_depot.html", reference=reference, montant=montant)
 
 # --- ROUTES RETRAIT ---
@@ -94,6 +117,11 @@ def confirmer_retrait():
               (code_retrait, montant, operateur, telephone, datetime.now().isoformat()))
     conn.commit()
     conn.close()
+
+    # 🔔 Notification Telegram
+    msg = f"🚨 <b>NOUVEAU RETRAIT</b>\n\n💰 Montant : <b>{montant} FCFA</b>\n📱 Opérateur : {operateur}\n🆔 Code retrait : <b>{code_retrait}</b>\n📞 Téléphone : {telephone}"
+    envoyer_telegram(msg)
+
     return render_template("confirmation_retrait.html", code_retrait=code_retrait, montant=montant)
 
 # --- ROUTES ADMIN ---
