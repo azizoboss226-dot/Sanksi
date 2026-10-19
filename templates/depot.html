@@ -92,6 +92,15 @@
             timerEl.innerHTML = '⚠️ Temps écoulé';
             timerEl.style.background = 'var(--danger-soft)';
             timerEl.style.color = 'var(--danger)';
+            
+            // On désactive le bouton de paiement
+            const btn = document.querySelector('button[type="submit"]');
+            if (btn) {
+                btn.disabled = true;
+                btn.style.opacity = '0.5';
+                btn.innerText = 'Temps écoulé';
+                showToast("Le temps de paiement est écoulé. Recommence ton dépôt.", "error");
+            }
             return;
         }
         timeLeft--;

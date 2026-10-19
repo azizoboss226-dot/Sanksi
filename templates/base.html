@@ -21,6 +21,12 @@
     {% block head %}{% endblock %}
 </head>
 <body>
+
+    <!-- Splash Screen -->
+    <div id="splash-screen">
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="SANKSI Loading...">
+    </div>
+
     <div class="app-container">
         {% block content %}{% endblock %}
     </div>
@@ -343,6 +349,16 @@
                     input.addEventListener('input', () => localStorage.setItem(key, input.value));
                 }
             }
+        });
+    </script>
+
+    <script>
+        // Cacher le splash screen dès que la page est chargée
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                const splash = document.getElementById('splash-screen');
+                if (splash) splash.classList.add('hidden');
+            }, 600); // 600ms d'animation
         });
     </script>
 </body>

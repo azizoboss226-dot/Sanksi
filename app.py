@@ -245,9 +245,9 @@ def admin():
     c = conn.cursor()
     
     # 1. Récupérer les listes
-    c.execute("SELECT * FROM demandes ORDER BY id DESC")
+    c.execute("SELECT * FROM demandes ORDER BY id DESC LIMIT 100")
     demandes = c.fetchall()
-    c.execute("SELECT * FROM retraits ORDER BY id DESC")
+    c.execute("SELECT * FROM retraits ORDER BY id DESC LIMIT 100")
     retraits = c.fetchall()
     
     # 2. Calculer les statistiques
