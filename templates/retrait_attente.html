@@ -1,54 +1,38 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SANKSI - Préparation du retrait</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body { font-family: 'Inter', sans-serif; background-color: #0F172A; color: #F8FAFC; margin: 0; padding: 0; min-height: 100vh; display: flex; flex-direction: column; }
-        .app-container { max-width: 480px; margin: 0 auto; width: 100%; flex: 1; display: flex; flex-direction: column; background: #0F172A; padding: 20px; box-sizing: border-box; }
-        .card { background: #1E293B; border: 1px solid #334155; border-radius: 16px; padding: 20px; margin-bottom: 16px; }
-        .info-val { font-size: 18px; font-weight: 900; color: #FCD34D; background: #0F172A; padding: 10px; border-radius: 8px; text-align: center; margin: 8px 0; }
-        .btn-wa { display: block; text-align: center; background: #25D366; color: white; font-weight: 800; padding: 14px; border-radius: 12px; text-decoration: none; margin-top: 10px; }
-    </style>
-</head>
-<body>
-<div class="app-container">
-    <h1 class="text-xl font-black text-[#38BDF8] text-center mb-6">Préparation du retrait</h1>
+{% extends "base.html" %}
+{% block title %}SANKSI - Préparation du retrait{% endblock %}
+
+{% block content %}
+<div class="page fade-in">
+    <h1 class="page-title">Préparation du retrait</h1>
 
     <div class="card">
-        <div id="zone-attente">
-            <p class="text-sm text-gray-400 text-center mb-4">Veuillez patienter, l'agent prépare vos informations de retrait...</p>
-            <div style="text-align: center; font-size: 30px; margin: 20px 0;">⏳</div>
+        <div id="zone-attente" class="text-center">
+            <p class="text-muted" style="font-size:14px;margin:0 0 10px 0;">Patiente, l'agent prépare tes informations de retrait...</p>
+            <div style="font-size:34px;margin:16px 0;">⏳</div>
         </div>
-        
-        <div id="zone-infos" style="display: none;">
-            <p class="text-sm text-gray-400 text-center mb-4">L'agent a répondu ! Voici les infos à mettre dans 1xBet :</p>
-            <div class="bg-[#0F172A] p-4 rounded-xl border border-dashed border-[#38BDF8] mb-4">
-                <div class="mb-2">
-                    <span class="text-xs text-gray-500">Rue :</span>
-                    <div class="info-val" id="info-rue"></div>
-                </div>
-                <div>
-                    <span class="text-xs text-gray-500">Ville :</span>
-                    <div class="info-val" id="info-ville"></div>
-                </div>
-            </div>
-            <p class="text-xs text-gray-400 text-center mb-4">Une fois ces informations entrées sur 1xBet et le retrait lancé, clique sur le bouton ci-dessous.</p>
-            <a href="/retrait?montant={{ montant }}&operateur={{ operateur }}" class="block w-full bg-[#38BDF8] text-[#0F172A] font-black text-center py-4 rounded-xl mb-2 text-lg">✅ J'ai le code, continuer</a>
+
+        <div id="zone-infos" style="display:none;">
+            <p class="text-muted text-center" style="font-size:14px;margin:0 0 14px 0;">L'agent a répondu ! Voici les infos à mettre dans 1xBet :</p>
+            <span class="label" style="font-size:12px;">Rue :</span>
+            <div class="merchant-number reference" id="info-rue" style="margin-top:0;"></div>
+            <span class="label" style="font-size:12px;">Ville :</span>
+            <div class="merchant-number reference" id="info-ville" style="margin-top:0;"></div>
+            <p class="text-muted text-center" style="font-size:12px;margin:14px 0;">Une fois ces informations entrées sur 1xBet et le retrait lancé, clique sur le bouton ci-dessous.</p>
+            <a href="/retrait?montant={{ montant }}&operateur={{ operateur }}" class="btn btn-success">✅ J'ai le code, continuer</a>
         </div>
     </div>
 
-    <div class="card" style="text-align: center;">
-        <p class="text-sm font-bold mb-2">Besoin d'aide ?</p>
-        <a href="https://wa.me/22677970985?text=Bonjour%2C%20j%27ai%20besoin%20d%27aide%20pour%20un%20retrait%20sur%20SANKSI" target="_blank" class="btn-wa">💬 Demander de l'aide sur WhatsApp</a>
+    <div class="card text-center">
+        <p style="font-weight:800;margin:0 0 10px 0;">Besoin d'aide ?</p>
+        <a href="https://wa.me/22677970985?text=Bonjour%2C%20j%27ai%20besoin%20d%27aide%20pour%20un%20retrait%20sur%20SANKSI" target="_blank" class="btn" style="background:#25D366;color:white;">💬 Demander de l'aide sur WhatsApp</a>
     </div>
 </div>
+{% endblock %}
 
+{% block scripts %}
 <script>
     const retraitId = "{{ retrait_id }}";
-    
+
     function verifierStatut() {
         fetch(`/api/retrait/${retraitId}`)
             .then(r => r.json())
@@ -63,9 +47,7 @@
             })
             .catch(err => console.log("En attente..."));
     }
-    
-    // On vérifie toutes les 3 secondes
+
     const intervalId = setInterval(verifierStatut, 3000);
 </script>
-</body>
-</html>
+{% endblock %}

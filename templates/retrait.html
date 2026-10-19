@@ -1,31 +1,15 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SANKSI - Finaliser le retrait</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body { font-family: 'Inter', sans-serif; background-color: #0F172A; color: #F8FAFC; margin: 0; padding: 0; min-height: 100vh; display: flex; flex-direction: column; }
-        .app-container { max-width: 480px; margin: 0 auto; width: 100%; flex: 1; display: flex; flex-direction: column; background: #0F172A; padding: 20px; box-sizing: border-box; }
-        .header-title { font-size: 20px; font-weight: 900; color: #38BDF8; text-align: center; margin-bottom: 20px; }
-        .step-card { background: #1E293B; border: 1px solid #334155; border-radius: 16px; padding: 20px; margin-bottom: 16px; }
-        .amount-big { font-size: 32px; font-weight: 900; color: #38BDF8; text-align: center; margin: 10px 0; }
-        .input-field { width: 100%; padding: 14px; border-radius: 10px; background: #0F172A; border: 1px solid #334155; color: white; font-size: 16px; margin-top: 8px; box-sizing: border-box; }
-        .input-field:focus { outline: none; border-color: #38BDF8; }
-        .btn-pay { width: 100%; background: #38BDF8; color: #0F172A; font-weight: 900; font-size: 18px; border: none; border-radius: 12px; padding: 18px; cursor: pointer; margin-top: 20px; box-shadow: 0 4px 12px rgba(56, 189, 248, 0.3); }
-        .btn-wa { display: block; text-align: center; background: #25D366; color: white; font-weight: 800; padding: 14px; border-radius: 12px; text-decoration: none; margin-top: 10px; }
-    </style>
-</head>
-<body>
-<div class="app-container">
-    <a href="/" style="color: #94A3B8; text-decoration: none; margin-bottom: 20px; display: inline-block;">← Annuler</a>
-    <div class="header-title">Finaliser le retrait</div>
+{% extends "base.html" %}
+{% block title %}SANKSI - Finaliser le retrait{% endblock %}
 
-    <div class="step-card" style="text-align: center;">
-        <p style="color: #94A3B8; font-size: 14px; margin: 0;">Montant à retirer</p>
+{% block content %}
+<div class="page fade-in">
+    <a href="/" class="back-link">← Annuler</a>
+    <h1 class="page-title">Finaliser le retrait</h1>
+
+    <div class="card text-center">
+        <p class="text-muted" style="font-size:14px;margin:0;">Montant à retirer</p>
         <div class="amount-big">{{ montant }} FCFA</div>
-        <p style="color: #38BDF8; font-size: 12px; font-weight: 700;">via {{ operateur }}</p>
+        <span class="badge badge-info">via {{ operateur }}</span>
     </div>
 
     <form action="/retrait/confirmer" method="POST">
@@ -33,28 +17,27 @@
         <input type="hidden" name="operateur" value="{{ operateur }}">
 
         <div class="step-card">
-            <label style="font-weight: 800; font-size: 14px;">1. Ton code de retrait 1xBet</label>
+            <label class="label"><span class="step-num" style="margin-right:8px;">1</span>Ton code de retrait 1xBet</label>
             <input type="text" name="code_retrait" required class="input-field" placeholder="Ex: RET-123456">
         </div>
 
         <div class="step-card">
-            <label style="font-weight: 800; font-size: 14px;">2. Ton Nom complet</label>
+            <label class="label"><span class="step-num" style="margin-right:8px;">2</span>Ton nom complet</label>
             <input type="text" name="nom" required class="input-field" placeholder="Ex: Moussa Traoré">
         </div>
 
         <div class="step-card">
-            <label style="font-weight: 800; font-size: 14px;">3. Numéro qui reçoit l'argent</label>
-            <p style="color: #94A3B8; font-size: 11px; margin: 2px 0 0 0;">(Mets l'indicatif +226 si tu n'es pas au Burkina Faso)</p>
+            <label class="label"><span class="step-num" style="margin-right:8px;">3</span>Numéro qui reçoit l'argent</label>
             <input type="tel" name="telephone" required class="input-field" placeholder="Ex: 70 00 00 00 ou +226 70 00 00 00">
+            <p class="hint">Mets l'indicatif +226 si tu n'es pas au Burkina Faso.</p>
         </div>
 
-        <button type="submit" class="btn-pay">Valider ma demande</button>
+        <button type="submit" class="btn btn-primary" style="margin-top:8px;">Valider ma demande</button>
     </form>
 
-    <div class="step-card" style="text-align: center; margin-top: 16px;">
-        <p class="text-xs font-bold mb-2">Un problème ?</p>
-        <a href="https://wa.me/22677970985?text=Bonjour%2C%20j%27ai%20besoin%20d%27aide%20pour%20un%20retrait%20sur%20SANKSI" target="_blank" class="btn-wa">💬 Demander de l'aide sur WhatsApp</a>
+    <div class="card text-center" style="margin-top:16px;">
+        <p style="font-weight:800;font-size:13px;margin:0 0 10px 0;">Un problème ?</p>
+        <a href="https://wa.me/22677970985?text=Bonjour%2C%20j%27ai%20besoin%20d%27aide%20pour%20un%20retrait%20sur%20SANKSI" target="_blank" class="btn" style="background:#25D366;color:white;">💬 Demander de l'aide sur WhatsApp</a>
     </div>
 </div>
-</body>
-</html>
+{% endblock %}
