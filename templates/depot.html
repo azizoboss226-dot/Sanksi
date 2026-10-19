@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SANKSI - Dépôt en cours</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #0F172A; color: #F8FAFC; margin: 0; padding: 0; height: 100vh; display: flex; flex-direction: column; }
+        .app-container { max-width: 480px; margin: 0 auto; width: 100%; height: 100%; display: flex; flex-direction: column; background: #0F172A; padding: 20px; box-sizing: border-box; }
+        
+        .header-title { font-size: 20px; font-weight: 900; color: #38BDF8; text-align: center; margin-bottom: 20px; }
+        .step-card { background: #1E293B; border: 1px solid #334155; border-radius: 16px; padding: 20px; margin-bottom: 16px; }
+        .amount-big { font-size: 32px; font-weight: 900; color: #38BDF8; text-align: center; margin: 10px 0; }
+        .merchant-number { font-size: 24px; font-weight: 900; color: #FFFFFF; letter-spacing: 1px; text-align: center; background: #0F172A; padding: 12px; border-radius: 8px; border: 1px dashed #38BDF8; margin: 10px 0; }
+        .timer { font-size: 20px; font-weight: 800; color: #EF4444; text-align: center; margin: 10px 0; }
+        .input-field { width: 100%; padding: 14px; border-radius: 10px; background: #0F172A; border: 1px solid #334155; color: white; font-size: 16px; margin-top: 8px; box-sizing: border-box; }
+        .input-field:focus { outline: none; border-color: #38BDF8; }
+        .btn-pay { width: 100%; background: #38BDF8; color: #0F172A; font-weight: 900; font-size: 18px; border: none; border-radius: 12px; padding: 18px; cursor: pointer; margin-top: 20px; box-shadow: 0 4px 12px rgba(56, 189, 248, 0.3); }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <a href="/" style="color: #94A3B8; text-decoration: none; margin-bottom: 20px;">← Retour</a>
+    <div class="header-title">Finaliser le dépôt</div>
+
+    <!-- Montant -->
+    <div class="step-card" style="text-align: center;">
+        <p style="color: #94A3B8; font-size: 14px; margin: 0;">Montant à envoyer</p>
+        <div class="amount-big">{{ montant }} FCFA</div>
+        <p style="color: #38BDF8; font-size: 12px; font-weight: 700;">via {{ operateur }}</p>
+    </div>
+
+    <!-- Instructions -->
+    <div class="step-card">
+        <p style="font-weight: 800; font-size: 16px; margin: 0 0 10px 0;">1. Envoyez l'argent au numéro :</p>
+        <div class="merchant-number">+226 79 27 12 39</div>
+        
+        <p style="font-weight: 800; font-size: 16px; margin: 20px 0 10px 0;">2. Utilisez cette référence :</p>
+        <div class="merchant-number" style="color: #FCD34D; border-color: #FCD34D;">NC-20261019-18C9</div>
+        
+        <div class="timer">⏳ 02:59</div>
+    </div>
+
+    <!-- ID Joueur -->
+    <div class="step-card">
+        <label style="font-weight: 800; font-size: 14px;">3. Ton ID Joueur 1xBet</label>
+        <p style="color: #94A3B8; font-size: 12px; margin: 4px 0 0 0;">Pour que nous puissions créditer ton compte.</p>
+        <input type="text" class="input-field" placeholder="Ex: 123456789">
+    </div>
+
+    <button class="btn-pay">J'ai effectué le paiement</button>
+</div>
+
+</body>
+</html>
