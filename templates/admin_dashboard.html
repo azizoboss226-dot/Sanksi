@@ -29,7 +29,7 @@
                 {% if d[6] == 'en_attente' %}
                 <div class="flex gap-2">
                     <a href="/gestion-sanksi-2026/action/depot/{{ d[0] }}/valider" class="flex-1 bg-green-600 text-center py-2 rounded-lg text-sm font-bold">Crédité</a>
-                    <a href="/gestion-sanksi-2026/action/depot/{{ d[0] }}/refuser" class="flex-1 bg-red-600 text-center py-2 rounded-lg text-sm font-bold">Refusé</a>
+                    <a href="/gestion-sanksi-2026/action/depot/{{ d[0] }}/refuser" onclick="var m = prompt('Motif du refus ?'); if (m === null) { return false; } this.href = this.href.split('?')[0] + '?motif=' + encodeURIComponent(m);" class="flex-1 bg-red-600 text-center py-2 rounded-lg text-sm font-bold">Refusé</a>
                 </div>
                 {% endif %}
             </div>
@@ -64,7 +64,7 @@
                 {% if r[6] == 'en_attente' %}
                 <div class="flex gap-2">
                     <a href="/gestion-sanksi-2026/action/retrait/{{ r[0] }}/valider" class="flex-1 bg-green-600 text-center py-2 rounded-lg text-sm font-bold">Payé</a>
-                    <a href="/gestion-sanksi-2026/action/retrait/{{ r[0] }}/refuser" class="flex-1 bg-red-600 text-center py-2 rounded-lg text-sm font-bold">Refusé</a>
+                    <a href="/gestion-sanksi-2026/action/retrait/{{ r[0] }}/refuser" onclick="var m = prompt('Motif du refus ?'); if (m === null) { return false; } this.href = this.href.split('?')[0] + '?motif=' + encodeURIComponent(m);" class="flex-1 bg-red-600 text-center py-2 rounded-lg text-sm font-bold">Refusé</a>
                 </div>
                 {% endif %}
                 {% endif %}

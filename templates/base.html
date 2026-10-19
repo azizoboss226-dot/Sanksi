@@ -66,6 +66,48 @@
             }
         }
     </script>
+    <script>
+    (function () {
+        try {
+            var p = new URLSearchParams(location.search).get('telephone');
+            if (p) localStorage.setItem('sanksi_tel', p);
+        } catch (e) {}
+
+        document.addEventListener('submit', function (e) {
+            var i = e.target.querySelector('[name="telephone"]');
+            if (i && i.value) {
+                try { localStorage.setItem('sanksi_tel', i.value.trim()); } catch (x) {}
+            }
+        }, true);
+
+        document.addEventListener('click', function () {
+            if (window.Notification && Notification.permission === 'default') {
+                Notification.requestPermission();
+            }
+        }, { once: true });
+
+        function verifier() {
+            var tel = null;
+            try { tel = localStorage.getItem('sanksi_tel'); } catch (e) {}
+            if (!tel) return;
+            fetch('/api/notifications?telephone=' + encodeURIComponent(tel))
+                .then(function (r) { return r.json(); })
+                .then(function (liste) {
+                    liste.forEach(function (m, i) {
+                        setTimeout(function () {
+                            showToast(m, 'info');
+                            if (window.Notification && Notification.permission === 'granted') {
+                                new Notification('SANKSI', { body: m });
+                            }
+                        }, i * 3500);
+                    });
+                })
+                .catch(function () {});
+        }
+        verifier();
+        setInterval(verifier, 8000);
+    })();
+    </script>
     {% block scripts %}{% endblock %}
 </body>
 </html>

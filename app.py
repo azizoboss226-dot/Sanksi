@@ -33,10 +33,23 @@ def init_db():
     c.execute('''CREATE TABLE IF NOT EXISTS retraits (
         id INTEGER PRIMARY KEY AUTOINCREMENT, code_retrait TEXT, montant INTEGER,
         operateur TEXT, nom TEXT, telephone TEXT, statut TEXT DEFAULT 'en_attente', created_at TEXT)''')
+    c.execute('''CREATE TABLE IF NOT EXISTS notifications (
+        id INTEGER PRIMARY KEY AUTOINCREMENT, telephone TEXT, message TEXT,
+        lu INTEGER DEFAULT 0, created_at TEXT)''')
     conn.commit()
     conn.close()
 
 init_db()
+
+def ajouter_notif(telephone, message):
+    if not telephone:
+        return
+    conn = sqlite3.connect('sanksi.db')
+    c = conn.cursor()
+    c.execute("INSERT INTO notifications (telephone, message, lu, created_at) VALUES (?, ?, 0, ?)",
+              (telephone, message, datetime.now().isoformat()))
+    conn.commit()
+    conn.close()
 
 def generer_reference():
     date_str = datetime.now().strftime("%Y%m%d")
@@ -258,6 +271,10 @@ def admin_preparer_retrait(id):
     row = c.fetchone()
     
     c.execute("UPDATE retraits SET code_retrait = ?, statut = 'prepare' WHERE id = ?", (infos, id))
+
+    if row and row[0]:
+        c.execute("INSERT INTO notifications (telephone, message, lu, created_at) VALUES (?, ?, 0, ?)",
+                  (row[0], "📍 L'agent a préparé ton retrait ! Ouvre la page d'attente pour voir la Rue et la Ville à mettre sur 1xBet.", datetime.now().isoformat()))
     
         
     conn.commit()
@@ -273,13 +290,40 @@ def admin_action(type_op, id, action):
     conn = sqlite3.connect('sanksi.db')
     c = conn.cursor()
     table = "demandes" if type_op == "depot" else "retraits"
+    c.execute(f"SELECT montant, telephone FROM {table} WHERE id = ?", (id,))
+    info = c.fetchone()
+    nom_op = "dépôt" if type_op == "depot" else "retrait"
     if action == "valider":
         c.execute(f"UPDATE {table} SET statut = 'valide' WHERE id = ?", (id,))
+        if info:
+            c.execute("INSERT INTO notifications (telephone, message, lu, created_at) VALUES (?, ?, 0, ?)",
+                      (info[1], f"✅ Ton {nom_op} de {info[0]} FCFA a été effectué.", datetime.now().isoformat()))
     elif action == "refuser":
         c.execute(f"UPDATE {table} SET statut = 'refuse' WHERE id = ?", (id,))
+        motif = request.args.get("motif", "").strip() or "Aucun motif précisé."
+        if info:
+            c.execute("INSERT INTO notifications (telephone, message, lu, created_at) VALUES (?, ?, 0, ?)",
+                      (info[1], f"❌ Ton {nom_op} de {info[0]} FCFA a été refusé. Motif : {motif}", datetime.now().isoformat()))
     conn.commit()
     conn.close()
     return redirect("/gestion-sanksi-2026")
+
+@app.route("/api/notifications")
+def api_notifications():
+    from flask import jsonify
+    tel = request.args.get("telephone", "").strip()
+    if not tel:
+        return jsonify([])
+    conn = sqlite3.connect('sanksi.db')
+    c = conn.cursor()
+    c.execute("SELECT id, message FROM notifications WHERE telephone = ? AND lu = 0 ORDER BY id", (tel,))
+    rows = c.fetchall()
+    for r in rows:
+        c.execute("UPDATE notifications SET lu = 1 WHERE id = ?", (r[0],))
+    conn.commit()
+    conn.close()
+    return jsonify([r[1] for r in rows])
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
