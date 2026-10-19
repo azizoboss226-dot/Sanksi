@@ -97,6 +97,25 @@ def confirmer_retrait():
     return render_template("confirmation_retrait.html", code_retrait=code_retrait, montant=montant)
 
 # --- ROUTES ADMIN ---
+
+@app.route("/historique", methods=["GET", "POST"])
+def historique():
+    demandes = []
+    retraits = []
+    tel = ""
+    if request.method == "POST":
+        tel = request.form.get("telephone", "").strip()
+        if tel:
+            conn = sqlite3.connect('sanksi.db')
+            c = conn.cursor()
+            c.execute("SELECT * FROM demandes WHERE telephone = ? ORDER BY id DESC", (tel,))
+            demandes = c.fetchall()
+            c.execute("SELECT * FROM retraits WHERE telephone = ? ORDER BY id DESC", (tel,))
+            retraits = c.fetchall()
+            conn.close()
+    return render_template("historique.html", demandes=demandes, retraits=retraits, tel=tel)
+
+
 @app.route("/gestion-sanksi-2026", methods=["GET", "POST"])
 def admin():
     if request.method == "POST":
