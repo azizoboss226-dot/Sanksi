@@ -228,16 +228,88 @@
         document.querySelectorAll('.notif-prompt').forEach(el => el.style.display = 'flex');
     }
 
-    function askNotificationPermission() {
-        Notification.requestPermission().then(perm => {
-            if (perm === 'granted') {
-                if (window.showToast) showToast('✅ Notifications activées !', 'success');
+    
+    
+    async function askNotificationPermission() {
+        if (!('Notification' in window) || !('serviceWorker' in navigator)) {
+            if (window.showToast) showToast("Ton navigateur ne supporte pas les notifications", "error");
+            return;
+        }
+
+        // 1. Vérifier si on a le numéro de téléphone
+        let tel = localStorage.getItem('sanksi_tel');
+        if (!tel) {
+            tel = prompt("Entre ton numéro de téléphone pour recevoir les alertes (ex: 70000000) :");
+            if (tel && tel.trim() !== "") {
+                tel = tel.trim();
+                localStorage.setItem('sanksi_tel', tel);
             } else {
-                if (window.showToast) showToast('Notifications bloquées', 'warning');
+                return; // L'utilisateur a annulé
             }
+        }
+
+        // 2. Demander la permission
+        const perm = await Notification.requestPermission();
+        
+        if (perm === 'granted') {
+            try {
+                // 3. Récupérer la clé publique VAPID
+                const res = await fetch('/api/push/cle');
+                const data = await res.json();
+                if (!data.publicKey) throw new Error("Clé VAPID manquante sur le serveur");
+
+                // 4. Enregistrer le Service Worker
+                const reg = await navigator.serviceWorker.register('/sw.js');
+
+                // 5. S'abonner au Push
+                const sub = await reg.pushManager.subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey: urlBase64ToUint8Array(data.publicKey)
+                });
+
+                // 6. Envoyer au serveur
+                await fetch('/api/push/abonner', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ subscription: sub, telephone: tel })
+                });
+
+                if (window.showToast) showToast('✅ Notifications activées !', 'success');
+                dismissNotifPrompt();
+            } catch (err) {
+                console.error("Erreur push:", err);
+                if (window.showToast) showToast('Erreur : ' + err.message, 'error');
+            }
+        } else {
+            if (window.showToast) showToast('Notifications bloquées', 'warning');
             dismissNotifPrompt();
-        });
+        }
     }
+
+    function urlBase64ToUint8Array(base64String) {
+        const padding = '='.repeat((4 - base64String.length % 4) % 4);
+        const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+        const rawData = window.atob(base64);
+        const outputArray = new Uint8Array(rawData.length);
+        for (let i = 0; i < rawData.length; ++i) {
+            outputArray[i] = rawData.charCodeAt(i);
+        }
+        return outputArray;
+    }
+
+
+    // Fonction utilitaire obligatoire pour convertir la clé VAPID
+    function urlBase64ToUint8Array(base64String) {
+        const padding = '='.repeat((4 - base64String.length % 4) % 4);
+        const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+        const rawData = window.atob(base64);
+        const outputArray = new Uint8Array(rawData.length);
+        for (let i = 0; i < rawData.length; ++i) {
+            outputArray[i] = rawData.charCodeAt(i);
+        }
+        return outputArray;
+    }
+
 
     function dismissNotifPrompt() {
         localStorage.setItem('sanksi_notif_dismissed', 'true');
