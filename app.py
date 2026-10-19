@@ -259,12 +259,6 @@ def admin_preparer_retrait(id):
     
     c.execute("UPDATE retraits SET code_retrait = ?, statut = 'prepare' WHERE id = ?", (infos, id))
     
-    # On crée la notification pour le client
-    if row and row[0]:
-        telephone_client = row[0]
-        msg_notif = f"📍 L'agent a préparé ton retrait ! Ouvre la page d'attente pour voir la Rue et la Ville à mettre sur 1xBet."
-        c.execute("INSERT INTO notifications (telephone, message, created_at) VALUES (?, ?, ?)", 
-                  (telephone_client, msg_notif, datetime.now().isoformat()))
         
     conn.commit()
     conn.close()
