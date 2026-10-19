@@ -5,6 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>{% block title %}SANKSI{% endblock %}</title>
     <meta name="theme-color" content="#FAF7FF">
+
+    <!-- Support iOS (iPhone) -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="SANKSI">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='logo.png') }}">
+
     <meta property="og:title" content="SANKSI - Recharge 1xBet rapide et sécurisé">
     <meta property="og:description" content="Faites vos dépôts et retraits 1xBet en toute simplicité avec Orange, Moov et Wave.">
     <meta property="og:image" content="https://sanksi.zevcloud.app/static/logo.png">
