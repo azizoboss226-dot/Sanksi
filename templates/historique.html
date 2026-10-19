@@ -101,6 +101,20 @@
 
 {% block scripts %}
 <script>
+
+    // Auto-refresh de l'historique toutes les 10 secondes (uniquement si connecté)
+    {% if tel %}
+    setInterval(function() {
+        // On ne recharge pas si l'utilisateur est en train d'écrire
+        if (document.activeElement.tagName !== 'INPUT') {
+            window.location.reload();
+        }
+    }, 10000);
+    {% endif %}
+
+</script>
+
+<script>
     function copyToClipboard(text) {
         if (navigator.clipboard) {
             navigator.clipboard.writeText(text).then(() => {
