@@ -88,10 +88,18 @@ def retrait_debut():
 def retrait_attente():
     montant = request.args.get('montant', '0')
     operateur = request.args.get('operateur', 'Orange')
-    # Simulation des infos admin
-    info_rue = "Rue 12.34, Secteur 15"
-    info_ville = "Ouagadougou"
-    return render_template("retrait_attente.html", montant=montant, operateur=operateur, info_rue=info_rue, info_ville=info_ville)
+    
+    # On crée une "demande de retrait" en attente dans la base
+    conn = sqlite3.connect('sanksi.db')
+    c = conn.cursor()
+    c.execute("""INSERT INTO retraits (code_retrait, montant, operateur, nom, telephone, statut, created_at) 
+                 VALUES (?, ?, ?, ?, ?, ?, ?)""", 
+              ("EN_ATTENTE", montant, operateur, "", "", "preparation", datetime.now().isoformat()))
+    retrait_id = c.lastrowid
+    conn.commit()
+    conn.close()
+
+    return render_template("retrait_attente.html", montant=montant, operateur=operateur, retrait_id=retrait_id)
 
 # --- RETRAIT : ETAPE 3 (Finalisation) ---
 @app.route("/retrait")
@@ -99,6 +107,30 @@ def retrait():
     montant = request.args.get('montant', '0')
     operateur = request.args.get('operateur', 'Orange')
     return render_template("retrait.html", montant=montant, operateur=operateur)
+
+
+@app.route("/api/retrait/<int:id>")
+def api_retrait(id):
+    conn = sqlite3.connect('sanksi.db')
+    c = conn.cursor()
+    c.execute("SELECT statut, code_retrait FROM retraits WHERE id = ?", (id,))
+    row = c.fetchone()
+    conn.close()
+    if not row:
+        return {"statut": "introuvable"}
+    
+    statut = row[0]
+    info_rue = ""
+    info_ville = ""
+    
+    # Si l'admin a mis les infos dans le champ code_retrait, on les renvoie
+    if statut == 'prepare':
+        infos = row[1].split('|') # On sépare rue et ville par un |
+        info_rue = infos[0]
+        info_ville = infos[1]
+        
+    return {"statut": statut, "rue": info_rue, "ville": info_ville}
+
 
 @app.route("/retrait/confirmer", methods=["POST"])
 def confirmer_retrait():
