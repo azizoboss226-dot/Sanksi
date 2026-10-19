@@ -1,19 +1,15 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Login</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-[#0F172A] text-white flex items-center justify-center h-screen p-6">
-    <form method="POST" class="bg-[#1E293B] p-8 rounded-2xl border border-[#334155] w-full max-w-sm">
-        <h1 class="text-2xl font-black text-center mb-6">SANKSI Admin</h1>
+{% extends "base.html" %}
+{% block title %}SANKSI - Admin{% endblock %}
+
+{% block content %}
+<div class="page fade-in" style="justify-content:center;">
+    <form method="POST" class="card">
+        <h1 class="page-title">SANKSI Admin</h1>
         {% if erreur %}
-        <p class="text-red-400 text-sm text-center mb-4">{{ erreur }}</p>
+        <div class="alert alert-danger">{{ erreur }}</div>
         {% endif %}
-        <input type="password" name="password" placeholder="Mot de passe" class="w-full p-4 rounded-xl bg-[#0F172A] border border-[#334155] text-white mb-4 focus:outline-none focus:border-[#38BDF8]">
-        <button type="submit" class="w-full bg-[#38BDF8] text-[#0F172A] font-bold py-3 rounded-xl">Connexion</button>
+        <input type="password" name="password" placeholder="Mot de passe" class="input-field" style="margin-bottom:14px;">
+        <button type="submit" class="btn btn-primary">Connexion</button>
     </form>
-</body>
-</html>
+</div>
+{% endblock %}
