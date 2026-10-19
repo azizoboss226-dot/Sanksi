@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>{% block title %}SANKSI{% endblock %}</title>
-    <meta name="theme-color" content="#0F172A">
+    <meta name="theme-color" content="#FAF7FF">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -16,19 +16,54 @@
         {% block content %}{% endblock %}
     </div>
     <div id="toast-container"></div>
+
     <script>
+        // ---- Ripple universel ----
+        document.addEventListener('click', function (e) {
+            var t = e.target.closest('button, .op-btn, .tab, .key, .shortcut-btn, .btn-main, .btn, .header-link, .op-btn');
+            if (!t || t.dataset.noRipple) return;
+            var r = t.getBoundingClientRect();
+            var s = Math.max(r.width, r.height);
+            var el = document.createElement('span');
+            el.className = 'ripple';
+            el.style.width = el.style.height = s + 'px';
+            el.style.left = (e.clientX - r.left - s / 2) + 'px';
+            el.style.top = (e.clientY - r.top - s / 2) + 'px';
+            if (getComputedStyle(t).position === 'static') t.style.position = 'relative';
+            t.style.overflow = 'hidden';
+            t.appendChild(el);
+            setTimeout(function () { el.remove(); }, 600);
+        });
+
+        // ---- Toast ----
         function showToast(message, type) {
             type = type || 'info';
-            var container = document.getElementById('toast-container');
-            var toast = document.createElement('div');
-            toast.className = 'toast toast-' + type;
-            toast.textContent = message;
-            container.appendChild(toast);
-            requestAnimationFrame(function () { toast.classList.add('show'); });
+            var c = document.getElementById('toast-container');
+            var t = document.createElement('div');
+            t.className = 'toast toast-' + type;
+            t.textContent = message;
+            c.appendChild(t);
+            requestAnimationFrame(function () { t.classList.add('show'); });
             setTimeout(function () {
-                toast.classList.remove('show');
-                setTimeout(function () { toast.remove(); }, 300);
+                t.classList.remove('show');
+                setTimeout(function () { t.remove(); }, 300);
             }, 3000);
+        }
+
+        // ---- Confettis ----
+        function fireConfetti() {
+            var colors = ['#7C3AED', '#EC4899', '#FFC93C', '#10B981', '#3B82F6', '#F472B6'];
+            for (var i = 0; i < 40; i++) {
+                var p = document.createElement('div');
+                p.className = 'confetti';
+                p.style.left = (Math.random() * 100) + '%';
+                p.style.background = colors[Math.floor(Math.random() * colors.length)];
+                p.style.animationDelay = (Math.random() * 0.15) + 's';
+                p.style.animationDuration = (0.9 + Math.random() * 0.7) + 's';
+                p.style.setProperty('--rot', (Math.random() * 720 - 360) + 'deg');
+                document.body.appendChild(p);
+                setTimeout((function (el) { return function () { el.remove(); }; })(p), 2200);
+            }
         }
     </script>
     {% block scripts %}{% endblock %}

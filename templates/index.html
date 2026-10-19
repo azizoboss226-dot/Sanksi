@@ -24,7 +24,8 @@
     <button type="button" class="op-btn op-wave" onclick="selectOperator('Wave', this)">Wave</button>
 </div>
 
-<div class="tabs">
+<div class="tabs" id="tabs">
+    <div class="tabs-indicator"></div>
     <button type="button" class="tab active" onclick="switchTab('depot', this)">Dépôt</button>
     <button type="button" class="tab" onclick="switchTab('retrait', this)">Retrait</button>
 </div>
@@ -64,6 +65,8 @@
     var montant = 0;
     var currentTab = 'depot';
     var currentOperator = 'Orange';
+    var milestones = [1000, 5000, 10000, 25000, 50000, 100000];
+    var lastMilestone = 0;
 
     function selectOperator(op, el) {
         document.querySelectorAll('.op-btn').forEach(function (b) { b.classList.remove('active'); });
@@ -75,46 +78,77 @@
         document.querySelectorAll('.tab').forEach(function (t) { t.classList.remove('active'); });
         el.classList.add('active');
         currentTab = tab;
+        var tabs = document.getElementById('tabs');
         var btn = document.getElementById('btn-main');
-        btn.innerText = tab === 'depot' ? 'Continuer le dépôt' : 'Continuer le retrait';
         if (tab === 'retrait') {
+            tabs.classList.add('retrait');
+            btn.innerText = 'Continuer le retrait';
             btn.classList.add('retrait-mode');
         } else {
+            tabs.classList.remove('retrait');
+            btn.innerText = 'Continuer le dépôt';
             btn.classList.remove('retrait-mode');
         }
     }
 
-    function updateDisplay() {
+    function bumpAmount() {
+        var el = document.getElementById('display-amount');
+        el.classList.remove('bump');
+        void el.offsetWidth;
+        el.classList.add('bump');
+    }
+
+    function checkMilestone(oldVal, newVal) {
+        for (var i = 0; i < milestones.length; i++) {
+            if (newVal >= milestones[i] && oldVal < milestones[i]) {
+                fireConfetti();
+                break;
+            }
+        }
+    }
+
+    function updateDisplay(oldVal) {
         document.getElementById('display-amount').innerText = montant.toLocaleString('fr-FR');
+        bumpAmount();
+        checkMilestone(oldVal, montant);
     }
 
     function pressKey(val) {
-        if (montant === 0) montant = val;
-        else montant = montant.toString() + val;
-        montant = parseInt(montant, 10);
-        updateDisplay();
+        var old = montant;
+        if (montant === 0) montant = parseInt(val, 10);
+        else montant = parseInt(montant.toString() + val, 10);
+        if (isNaN(montant)) montant = 0;
+        updateDisplay(old);
     }
 
     function deleteKey() {
+        var old = montant;
         montant = Math.floor(montant / 10);
-        updateDisplay();
+        updateDisplay(old);
     }
 
     function addAmount(val) {
+        var old = montant;
         montant += val;
-        updateDisplay();
+        updateDisplay(old);
     }
 
     function validerMontant() {
         if (montant < 500) {
             showToast("Le montant minimum est de 500 FCFA", "error");
+            var btn = document.getElementById('btn-main');
+            btn.animate(
+                [{ transform: 'translateX(0)' }, { transform: 'translateX(-8px)' },
+                 { transform: 'translateX(8px)' }, { transform: 'translateX(-4px)' },
+                 { transform: 'translateX(4px)' }, { transform: 'translateX(0)' }],
+                { duration: 350, easing: 'ease-out' }
+            );
             return;
         }
-        if (currentTab === 'depot') {
-            window.location.href = '/depot?montant=' + montant + '&operateur=' + encodeURIComponent(currentOperator);
-        } else {
-            window.location.href = '/retrait/debut?montant=' + montant + '&operateur=' + encodeURIComponent(currentOperator);
-        }
+        var url = currentTab === 'depot'
+            ? '/depot?montant=' + montant + '&operateur=' + encodeURIComponent(currentOperator)
+            : '/retrait/debut?montant=' + montant + '&operateur=' + encodeURIComponent(currentOperator);
+        window.location.href = url;
     }
 </script>
 {% endblock %}
