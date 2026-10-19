@@ -361,5 +361,34 @@
             }, 600); // 600ms d'animation
         });
     </script>
+
+    <script>
+        // Anti-double-clic sur tous les formulaires
+        document.addEventListener('submit', function(e) {
+            const form = e.target;
+            const submitBtn = form.querySelector('button[type="submit"]');
+            
+            if (submitBtn) {
+                // Si le bouton est déjà désactivé, on annule la soumission
+                if (submitBtn.disabled) {
+                    e.preventDefault();
+                    return false;
+                }
+                
+                // On désactive le bouton et on change son texte
+                submitBtn.disabled = true;
+                submitBtn.style.opacity = '0.7';
+                const originalText = submitBtn.innerHTML;
+                submitBtn.innerHTML = '⏳ Patientez...';
+                
+                // Si le formulaire échoue ou que l'utilisateur revient en arrière, on réactive
+                setTimeout(() => {
+                    submitBtn.disabled = false;
+                    submitBtn.style.opacity = '1';
+                    submitBtn.innerHTML = originalText;
+                }, 5000);
+            }
+        });
+    </script>
 </body>
 </html>

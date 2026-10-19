@@ -47,8 +47,14 @@
         </div>
         
         <div style="background: var(--bg-deep); padding: 10px; border-radius: var(--radius-sm); margin-bottom: 12px;">
-            <p style="font-size: 13px; margin: 0 0 4px 0;"><b>ID 1xBet :</b> {{ d[4] }}</p>
-            <p style="font-size: 13px; margin: 0;"><b>Tél :</b> {{ d[5] }}</p>
+            <p style="font-size: 13px; margin: 0 0 4px 0; display: flex; justify-content: space-between; align-items: center;">
+                <span><b>ID 1xBet :</b> {{ d[4] }}</span>
+                <button type="button" onclick="copyToClipboard('{{ d[4] }}')" style="background:var(--primary-soft); color:var(--primary); border:none; border-radius:4px; padding:2px 6px; font-size:12px;">📋</button>
+            </p>
+            <p style="font-size: 13px; margin: 0; display: flex; justify-content: space-between; align-items: center;">
+                <span><b>Tél :</b> {{ d[5] }}</span>
+                <button type="button" onclick="copyToClipboard('{{ d[5] }}')" style="background:var(--primary-soft); color:var(--primary); border:none; border-radius:4px; padding:2px 6px; font-size:12px;">📋</button>
+            </p>
         </div>
 
         {% if d[6] == 'en_attente' %}
@@ -98,7 +104,10 @@
         {% else %}
         <div style="background: var(--bg-deep); padding: 10px; border-radius: var(--radius-sm); margin-bottom: 12px;">
             <p style="font-size: 13px; margin: 0 0 4px 0;"><b>Nom :</b> {{ r[4] }}</p>
-            <p style="font-size: 13px; margin: 0;"><b>Tél :</b> {{ r[5] }}</p>
+            <p style="font-size: 13px; margin: 0; display: flex; justify-content: space-between; align-items: center;">
+                <span><b>Tél :</b> {{ r[5] }}</span>
+                <button type="button" onclick="copyToClipboard('{{ r[5] }}')" style="background:var(--primary-soft); color:var(--primary); border:none; border-radius:4px; padding:2px 6px; font-size:12px;">📋</button>
+            </p>
         </div>
         
         {% if r[6] == 'en_attente' %}
