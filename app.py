@@ -100,7 +100,7 @@ def retrait_attente():
     conn.close()
 
     # 🔔 Notification Telegram pour prévenir l'admin
-    msg = f"🚨 <b>NOUVELLE DEMANDE DE RETRAIT</b>\n\n💰 Montant : <b>{montant} FCFA</b>\n📱 Opérateur : {operateur}\n🆔 ID Demande : {retrait_id}\n\n👉 Va sur l'admin pour préparer les infos (Rue/Ville)."
+    msg = f"🚨 <b>NOUVELLE DEMANDE DE RETRAIT</b>\n\n💰 Montant : <b>{montant} FCFA</b>\n📱 Opérateur : {operateur}\n🆔 ID Demande : {retrait_id}\n\n👉 <a href='https://sanksi.zevcloud.app/gestion-sanksi-2026'>Préparer le retrait (Admin)</a>"
     envoyer_telegram(msg)
 
     return render_template("retrait_attente.html", montant=montant, operateur=operateur, retrait_id=retrait_id)
@@ -153,7 +153,7 @@ def confirmer_retrait():
     conn.commit()
     conn.close()
 
-    msg = f"🚨 <b>NOUVEAU RETRAIT</b>\n\n💰 Montant : <b>{montant} FCFA</b>\n📱 Opérateur : {operateur}\n🆔 Code retrait : <b>{code_retrait}</b>\n👤 Nom : {nom}\n📞 Téléphone : {telephone}"
+    msg = f"🚨 <b>NOUVEAU RETRAIT</b>\n\n💰 Montant : <b>{montant} FCFA</b>\n📱 Opérateur : {operateur}\n🆔 Code retrait : <b>{code_retrait}</b>\n👤 Nom : {nom}\n📞 Téléphone : {telephone}\n\n👉 <a href='https://sanksi.zevcloud.app/gestion-sanksi-2026'>Valider le paiement (Admin)</a>"
     envoyer_telegram(msg)
 
     return render_template("confirmation_retrait.html", code_retrait=code_retrait, montant=montant)
