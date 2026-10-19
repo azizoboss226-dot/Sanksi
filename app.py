@@ -110,13 +110,13 @@ def confirmer_depot():
     
     conn = sqlite3.connect('sanksi.db')
     c = conn.cursor()
-    c.execute("""INSERT INTO demandes (reference, montant, operateur, id_1xbet, telephone, created_at) 
+    c.execute("""INSERT INTO demandes (reference, montant, operateur, id_1xbet, telephone, parrain, created_at) 
                  VALUES (?, ?, ?, ?, ?, ?)""", 
               (reference, montant, operateur, id_1xbet, telephone, datetime.now().isoformat()))
     conn.commit()
     conn.close()
 
-    msg = f"🚨 <b>NOUVEAU DÉPÔT</b>\n\n💰 Montant : <b>{montant} FCFA</b>\n📱 Opérateur : {operateur}\n🆔 ID 1xbet : <b>{id_1xbet}</b>\n📞 Téléphone : {telephone}\n🔖 Réf : {reference}"
+    msg = f"🚨 <b>NOUVEAU DÉPÔT</b>\n\n💰 Montant : <b>{montant} FCFA</b>\n📱 Opérateur : {operateur}\n🆔 ID 1xbet : <b>{id_1xbet}</b>\n📞 Téléphone : {telephone}\n🔖 Réf : {reference}\n\n👉 <a href='https://sanksi.zevcloud.app/gestion-sanksi-2026'>Valider le dépôt (Admin)</a>"
     envoyer_telegram(msg)
 
     return render_template("confirmation_depot.html", reference=reference, montant=montant)
@@ -283,6 +283,30 @@ def admin():
                            attente_depots=attente_depots,
                            attente_retraits=attente_retraits)
 
+
+
+@app.route("/gestion-sanksi-2026/export-csv")
+def export_csv():
+    if not session.get('admin'): return redirect("/gestion-sanksi-2026")
+    import csv, io
+    from flask import Response
+    conn = sqlite3.connect('sanksi.db')
+    c = conn.cursor()
+    c.execute("SELECT * FROM demandes")
+    demandes = c.fetchall()
+    c.execute("SELECT * FROM retraits")
+    retraits = c.fetchall()
+    conn.close()
+    
+    output = io.StringIO()
+    writer = csv.writer(output, delimiter=';')
+    writer.writerow(['Type', 'ID', 'Ref/Code', 'Montant', 'Operateur', 'ID 1xBet/Nom', 'Telephone', 'Statut', 'Date'])
+    for d in demandes:
+        writer.writerow(['Depot', d[0], d[1], d[2], d[3], d[4], d[5], d[6], d[7]])
+    for r in retraits:
+        writer.writerow(['Retrait', r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7]])
+    
+    return Response(output.getvalue(), mimetype="text/csv", headers={"Content-Disposition": "attachment;filename=sanksi_export.csv"})
 
 @app.route("/gestion-sanksi-2026/preparer/<int:id>", methods=["POST"])
 def admin_preparer_retrait(id):

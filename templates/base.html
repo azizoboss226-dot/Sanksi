@@ -5,6 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>{% block title %}SANKSI{% endblock %}</title>
     <meta name="theme-color" content="#FAF7FF">
+    <meta property="og:title" content="SANKSI - Recharge 1xBet rapide et sécurisé">
+    <meta property="og:description" content="Faites vos dépôts et retraits 1xBet en toute simplicité avec Orange, Moov et Wave.">
+    <meta property="og:image" content="https://sanksi.zevcloud.app/static/logo.png">
+    <meta property="og:url" content="https://sanksi.zevcloud.app/">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -318,5 +325,25 @@
 
     document.addEventListener('DOMContentLoaded', initNotifPrompts);
 </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const fields = {
+                'telephone': 'sanksi_tel',
+                'id_1xbet': 'sanksi_id_1xbet',
+                'nom': 'sanksi_nom'
+            };
+            
+            for (const [name, key] of Object.entries(fields)) {
+                const input = document.querySelector(`input[name="${name}"]`);
+                if (input) {
+                    // Remplir automatiquement si on a déjà l'info
+                    if (localStorage.getItem(key)) input.value = localStorage.getItem(key);
+                    // Sauvegarder à chaque frappe
+                    input.addEventListener('input', () => localStorage.setItem(key, input.value));
+                }
+            }
+        });
+    </script>
 </body>
 </html>

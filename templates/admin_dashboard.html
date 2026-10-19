@@ -7,10 +7,26 @@
         <img src="{{ url_for('static', filename='logo.png') }}" alt="SANKSI" class="logo-img">
         <span style="font-size: 16px; margin-left: 8px; color: var(--text-muted); font-weight: 800;">Admin</span>
     </div>
+    <a href="/gestion-sanksi-2026/export-csv" class="header-link" style="margin-right:8px; background:var(--success-soft); color:#047857;">📥 CSV</a>
     <a href="/" class="header-link">Site →</a>
 </header>
 
 <div class="page fade-in">
+
+    <!-- Statistiques -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px;">
+        <div class="card" style="padding: 16px; text-align: center; border-top: 4px solid var(--success);">
+            <p class="text-muted" style="font-size: 11px; text-transform: uppercase; margin: 0 0 4px 0; font-weight: 800;">Dépôts validés</p>
+            <p style="font-size: 20px; font-weight: 900; color: var(--text); margin: 0;">{{ total_depots_montant }} F</p>
+            <p style="font-size: 11px; color: var(--text-muted); margin: 4px 0 0 0;">({{ total_depots_count }} opérations)</p>
+        </div>
+        <div class="card" style="padding: 16px; text-align: center; border-top: 4px solid var(--primary);">
+            <p class="text-muted" style="font-size: 11px; text-transform: uppercase; margin: 0 0 4px 0; font-weight: 800;">Retraits payés</p>
+            <p style="font-size: 20px; font-weight: 900; color: var(--text); margin: 0;">{{ total_retraits_montant }} F</p>
+            <p style="font-size: 11px; color: var(--text-muted); margin: 4px 0 0 0;">({{ total_retraits_count }} opérations)</p>
+        </div>
+    </div>
+
     
     <!-- ================= DÉPÔTS ================= -->
     <h2 class="section-title">Dépôts en cours</h2>
