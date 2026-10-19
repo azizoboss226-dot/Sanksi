@@ -77,10 +77,16 @@ def confirmer_depot():
     return render_template("confirmation_depot.html", reference=reference, montant=montant)
 
 # --- RETRAIT : ETAPE 1 (Question) ---
-@app.route("/retrait/debut")
+@app.route("/retrait/debut", methods=["GET", "POST"])
 def retrait_debut():
     montant = request.args.get('montant', '0')
     operateur = request.args.get('operateur', 'Orange')
+    
+    if request.method == "POST":
+        telephone = request.form.get("telephone")
+        # On redirige vers l'attente avec le téléphone
+        return redirect(f"/retrait/attente?montant={montant}&operateur={operateur}&telephone={telephone}")
+        
     return render_template("retrait_debut.html", montant=montant, operateur=operateur)
 
 # --- RETRAIT : ETAPE 2 (Attente des infos) ---
@@ -213,7 +219,20 @@ def admin_preparer_retrait(id):
     
     conn = sqlite3.connect('sanksi.db')
     c = conn.cursor()
+    
+    # On récupère le téléphone du client avant de modifier
+    c.execute("SELECT telephone FROM retraits WHERE id = ?", (id,))
+    row = c.fetchone()
+    
     c.execute("UPDATE retraits SET code_retrait = ?, statut = 'prepare' WHERE id = ?", (infos, id))
+    
+    # On crée la notification pour le client
+    if row and row[0]:
+        telephone_client = row[0]
+        msg_notif = f"📍 L'agent a préparé ton retrait ! Ouvre la page d'attente pour voir la Rue et la Ville à mettre sur 1xBet."
+        c.execute("INSERT INTO notifications (telephone, message, created_at) VALUES (?, ?, ?)", 
+                  (telephone_client, msg_notif, datetime.now().isoformat()))
+        
     conn.commit()
     conn.close()
     

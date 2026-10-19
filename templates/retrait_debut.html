@@ -21,8 +21,13 @@
         <h1 class="text-xl font-black text-white mb-4">C'est ta première fois pour un retrait sur 1xBet ?</h1>
         <p class="text-sm text-gray-400 mb-6">Si oui, un agent peut t'accompagner pas à pas pour éviter les erreurs.</p>
         
-        <button onclick="montrerAide()" class="btn-yes">Oui, c'est ma première fois</button>
-        <a href="/retrait/attente?montant={{ montant }}&operateur={{ operateur }}" class="btn-no">Non, je sais comment faire</a>
+        <form method="POST" action="/retrait/debut?montant={{ montant }}&operateur={{ operateur }}">
+            <label style="font-weight: 800; font-size: 14px; display: block; text-align: left; margin-bottom: 8px;">Numéro qui recevra l'argent :</label>
+            <input type="tel" name="telephone" required class="w-full p-4 rounded-xl bg-[#0F172A] border border-[#334155] text-white mb-4 focus:outline-none focus:border-[#38BDF8]" placeholder="Ex: 70 00 00 00 ou +226...">
+            
+            <button type="button" onclick="montrerAide()" class="btn-yes w-full">Oui, c'est ma première fois</button>
+            <button type="submit" class="btn-no w-full">Non, je sais comment faire</button>
+        </form>
     </div>
 
     <div id="zone-aide" class="card" style="display: none; border-color: #25D366;">
