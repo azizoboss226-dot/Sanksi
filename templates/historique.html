@@ -1,76 +1,78 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SANKSI - Historique</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
-        body { font-family: 'Inter', sans-serif; background-color: #0F172A; color: #F8FAFC; margin: 0; padding: 0; min-height: 100vh; }
-        .app-container { max-width: 480px; margin: 0 auto; width: 100%; padding: 20px; box-sizing: border-box; }
-        .card { background: #1E293B; border: 1px solid #334155; border-radius: 16px; padding: 16px; margin-bottom: 12px; }
-    </style>
-</head>
-<body>
-<div class="app-container">
-    <a href="/" style="color: #94A3B8; text-decoration: none; margin-bottom: 20px; display: inline-block;">← Retour</a>
-    <h1 class="text-2xl font-black text-[#38BDF8] mb-6 text-center">Mon Historique</h1>
+{% extends "base.html" %}
+{% block title %}SANKSI — Historique{% endblock %}
 
-    <form method="POST" class="mb-6">
-        <label class="text-sm font-bold text-gray-300 mb-2 block">Entre ton numéro de téléphone utilisé</label>
-        <div class="flex gap-2">
-            <input type="tel" name="telephone" value="{{ tel }}" required class="flex-1 p-3 rounded-xl bg-[#1E293B] border border-[#334155] text-white focus:outline-none focus:border-[#38BDF8]" placeholder="Ex: 70 00 00 00">
-            <button type="submit" class="bg-[#38BDF8] text-[#0F172A] font-bold px-6 rounded-xl">Voir</button>
+{% block content %}
+<div class="page fade-in">
+    <a href="/" class="back-link">← Retour</a>
+    <h1 class="page-title">Mon Historique</h1>
+
+    <!-- Bandeau Notifications -->
+    <div class="notif-prompt" style="display:none; background:var(--primary-soft); border:1.5px solid var(--primary); border-radius:var(--radius); padding:14px 16px; margin-bottom:20px; align-items:center; gap:12px; animation:fadeIn 0.4s ease;">
+        <div style="font-size:24px;">🔔</div>
+        <div style="flex:1;">
+            <div style="font-weight:800; font-size:13px; color:var(--text);">Active les notifications</div>
+            <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">Pour suivre tes dépôts et retraits en temps réel.</div>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:4px;">
+            <button type="button" class="btn btn-primary" style="padding:6px 12px; font-size:12px; min-height:32px; border-radius:8px;" onclick="askNotificationPermission()">Activer</button>
+            <button type="button" style="background:none; border:none; color:var(--text-muted); font-size:10px; font-weight:700; text-decoration:underline;" onclick="dismissNotifPrompt()">Plus tard</button>
+        </div>
+    </div>
+
+    <!-- Recherche -->
+    <form method="POST" class="card" style="margin-bottom: 24px;">
+        <label class="label">Entre ton numéro de téléphone</label>
+        <div style="display: flex; gap: 8px;">
+            <input type="tel" name="telephone" value="{{ tel }}" required class="input-field" placeholder="Ex: 70 00 00 00" style="flex: 1;">
+            <button type="submit" class="btn btn-primary" style="width: auto; padding: 0 20px; min-height: 50px;">Voir</button>
         </div>
     </form>
 
     {% if tel %}
-        <h2 class="text-xs font-bold text-gray-400 mb-2 mt-6">MES DÉPÔTS</h2>
+        <!-- Dépôts -->
+        <h2 class="section-title">Mes Dépôts</h2>
         {% if demandes %}
             {% for d in demandes %}
-            <div class="card">
-                <div class="flex justify-between items-center mb-2">
-                    <span class="font-bold text-[#38BDF8]">{{ d[2] }} FCFA</span>
-                    <span class="text-xs px-2 py-1 rounded font-bold 
-                        {% if d[6]=='valide' %}bg-green-900 text-green-300
-                        {% elif d[6]=='refuse' %}bg-red-900 text-red-300
-                        {% else %}bg-yellow-900 text-yellow-300{% endif %}">
-                        {% if d[6]=='valide' %}CRÉDITÉ
-                        {% elif d[6]=='refuse' %}REFUSÉ
-                        {% else %}EN ATTENTE{% endif %}
-                    </span>
+            <div class="card" style="padding: 16px; margin-bottom: 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <span style="font-weight: 900; color: var(--primary); font-size: 18px;">{{ d[2] }} FCFA</span>
+                    {% if d[6] == 'valide' %}
+                        <span class="badge badge-success">CRÉDITÉ</span>
+                    {% elif d[6] == 'refuse' %}
+                        <span class="badge badge-danger">REFUSÉ</span>
+                    {% else %}
+                        <span class="badge badge-warning">EN ATTENTE</span>
+                    {% endif %}
                 </div>
-                <p class="text-xs text-gray-400">ID 1xBet : {{ d[4] }}</p>
-                <p class="text-xs text-gray-400 mt-1">Réf : {{ d[1] }}</p>
+                <p class="text-muted" style="font-size: 13px; margin: 4px 0;">ID 1xBet : <b style="color: var(--text);">{{ d[4] }}</b></p>
+                <p class="text-muted" style="font-size: 13px; margin: 4px 0;">Réf : <b style="color: var(--text);">{{ d[1] }}</b></p>
             </div>
             {% endfor %}
         {% else %}
-            <p class="text-sm text-gray-500 italic">Aucun dépôt trouvé.</p>
+            <p class="text-muted" style="font-size: 14px; font-style: italic; margin-bottom: 24px;">Aucun dépôt trouvé.</p>
         {% endif %}
 
-        <h2 class="text-xs font-bold text-gray-400 mb-2 mt-6">MES RETRAITS</h2>
+        <!-- Retraits -->
+        <h2 class="section-title" style="margin-top: 24px;">Mes Retraits</h2>
         {% if retraits %}
             {% for r in retraits %}
-            <div class="card">
-                <div class="flex justify-between items-center mb-2">
-                    <span class="font-bold text-[#38BDF8]">{{ r[2] }} FCFA</span>
-                    <span class="text-xs px-2 py-1 rounded font-bold 
-                        {% if r[5]=='valide' %}bg-green-900 text-green-300
-                        {% elif r[5]=='refuse' %}bg-red-900 text-red-300
-                        {% else %}bg-yellow-900 text-yellow-300{% endif %}">
-                        {% if r[5]=='valide' %}PAYÉ
-                        {% elif r[5]=='refuse' %}REFUSÉ
-                        {% else %}EN ATTENTE{% endif %}
-                    </span>
+            <div class="card" style="padding: 16px; margin-bottom: 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <span style="font-weight: 900; color: var(--primary); font-size: 18px;">{{ r[2] }} FCFA</span>
+                    {% if r[5] == 'valide' %}
+                        <span class="badge badge-success">PAYÉ</span>
+                    {% elif r[5] == 'refuse' %}
+                        <span class="badge badge-danger">REFUSÉ</span>
+                    {% else %}
+                        <span class="badge badge-warning">EN ATTENTE</span>
+                    {% endif %}
                 </div>
-                <p class="text-xs text-gray-400">Code retrait : {{ r[1] }}</p>
+                <p class="text-muted" style="font-size: 13px; margin: 4px 0;">Code retrait : <b style="color: var(--text);">{{ r[1] }}</b></p>
             </div>
             {% endfor %}
         {% else %}
-            <p class="text-sm text-gray-500 italic">Aucun retrait trouvé.</p>
+            <p class="text-muted" style="font-size: 14px; font-style: italic;">Aucun retrait trouvé.</p>
         {% endif %}
     {% endif %}
 </div>
-</body>
-</html>
+{% endblock %}

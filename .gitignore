@@ -6,3 +6,4 @@ __pycache__/
 venv/
 sanksi.db
 static/logo-source.png
+*.bak*
