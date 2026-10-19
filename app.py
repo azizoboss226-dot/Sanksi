@@ -115,6 +115,31 @@ def check_maintenance():
     except:
         return False
 
+
+def get_fake_stats():
+    try:
+        with open('config.json', 'r') as f:
+            config = json.load(f)
+    except:
+        config = {}
+
+    # Si la date de lancement n'est pas enregistrée, on l'enregistre aujourd'hui
+    if 'start_date' not in config:
+        config['start_date'] = datetime.now().strftime('%Y-%m-%d')
+        try:
+            with open('config.json', 'w') as f:
+                json.dump(config, f)
+        except: pass
+
+    start_date = datetime.strptime(config['start_date'], '%Y-%m-%d')
+    days_active = (datetime.now() - start_date).days
+
+    # Si l'app a moins de 30 jours, on renvoie les faux chiffres. Sinon, 0.
+    if days_active <= 30:
+        return 150, 2500000
+    else:
+        return 0, 0
+
 @app.route("/")
 def index():
     return render_template("index.html")
