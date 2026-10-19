@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, redirect, session
+import os
 import sqlite3
 import random
 import string
@@ -96,13 +97,13 @@ def confirmer_retrait():
     return render_template("confirmation_retrait.html", code_retrait=code_retrait, montant=montant)
 
 # --- ROUTES ADMIN ---
-@app.route("/admin", methods=["GET", "POST"])
+@app.route("/gestion-sanksi-2026", methods=["GET", "POST"])
 def admin():
     if request.method == "POST":
         password = request.form.get("password")
-        if password == "SanksiAdmin2026": # Mot de passe admin (tu pourras le changer)
+        if password == os.environ.get("ADMIN_PASSWORD", "SanksiAdmin2026"): # Mot de passe admin (tu pourras le changer)
             session['admin'] = True
-            return redirect("/admin")
+            return redirect("/gestion-sanksi-2026")
         else:
             return render_template("admin_login.html", erreur="Mot de passe incorrect")
             
@@ -118,10 +119,10 @@ def admin():
     conn.close()
     return render_template("admin_dashboard.html", demandes=demandes, retraits=retraits)
 
-@app.route("/admin/action/<type_op>/<int:id>/<action>")
+@app.route("/gestion-sanksi-2026/action/<type_op>/<int:id>/<action>")
 def admin_action(type_op, id, action):
     if not session.get('admin'):
-        return redirect("/admin")
+        return redirect("/gestion-sanksi-2026")
     conn = sqlite3.connect('sanksi.db')
     c = conn.cursor()
     table = "demandes" if type_op == "depot" else "retraits"
@@ -131,7 +132,7 @@ def admin_action(type_op, id, action):
         c.execute(f"UPDATE {table} SET statut = 'refuse' WHERE id = ?", (id,))
     conn.commit()
     conn.close()
-    return redirect("/admin")
+    return redirect("/gestion-sanksi-2026")
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
