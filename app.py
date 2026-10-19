@@ -91,6 +91,20 @@ def generer_reference():
 
 import json
 
+
+def is_blacklisted(telephone):
+    try:
+        with open('blacklist.json', 'r') as f:
+            blacklist = json.load(f)
+            # On nettoie le numéro pour comparer uniquement les chiffres
+            tel_clean = ''.join(filter(str.isdigit, telephone))
+            for b_tel in blacklist:
+                if ''.join(filter(str.isdigit, b_tel)) in tel_clean:
+                    return True
+            return False
+    except:
+        return False
+
 def check_maintenance():
     try:
         with open('config.json', 'r') as f:
@@ -114,6 +128,9 @@ def depot():
 
 @app.route("/depot/confirmer", methods=["POST"])
 def confirmer_depot():
+    telephone = request.form.get("telephone")
+    if is_blacklisted(telephone):
+        return "Votre numéro a été bloqué par l'administrateur. Contactez le support.", 403
     montant = request.form.get("montant")
     operateur = request.form.get("operateur")
     reference = request.form.get("reference")
@@ -143,6 +160,8 @@ def retrait_debut():
     
     if request.method == "POST":
         telephone = request.form.get("telephone")
+        if is_blacklisted(telephone):
+            return "Votre numéro a été bloqué par l'administrateur. Contactez le support.", 403
         # On redirige vers l'attente avec le téléphone
         return redirect(f"/retrait/attente?montant={montant}&operateur={operateur}&telephone={telephone}")
         
@@ -266,6 +285,18 @@ def admin():
     if not session.get('admin'):
         return render_template("admin_login.html", erreur=None)
 
+    # --- NETTOYAGE AUTOMATIQUE ---
+    conn_clean = sqlite3.connect('sanksi.db')
+    c_clean = conn_clean.cursor()
+    # Expirer les dépôts en attente depuis plus de 30 minutes
+    c_clean.execute("UPDATE demandes SET statut = 'expire' WHERE statut = 'en_attente' AND created_at < datetime('now', '-30 minutes', 'localtime')")
+    # Expirer les retraits en attente depuis plus de 1 heure
+    c_clean.execute("UPDATE retraits SET statut = 'expire' WHERE statut = 'en_attente' AND created_at < datetime('now', '-1 hour', 'localtime')")
+    conn_clean.commit()
+    conn_clean.close()
+    # ------------------------------
+
+    conn = sqlite3.connect('sanksi.db')
     conn = sqlite3.connect('sanksi.db')
     c = conn.cursor()
     
@@ -319,6 +350,23 @@ def toggle_maintenance():
     except: config = {}
     config['maintenance'] = not config.get('maintenance', False)
     with open('config.json', 'w') as f: json.dump(config, f)
+    return redirect("/gestion-sanksi-2026")
+
+
+@app.route("/gestion-sanksi-2026/bloquer/<telephone>")
+def admin_bloquer(telephone):
+    if not session.get('admin'): return redirect("/gestion-sanksi-2026")
+    try:
+        with open('blacklist.json', 'r') as f: blacklist = json.load(f)
+    except: blacklist = []
+    
+    # Si le numéro est déjà dans la liste, on le retire (débloquer)
+    if telephone in blacklist:
+        blacklist.remove(telephone)
+    else:
+        blacklist.append(telephone)
+        
+    with open('blacklist.json', 'w') as f: json.dump(blacklist, f)
     return redirect("/gestion-sanksi-2026")
 
 @app.route("/gestion-sanksi-2026/export-csv")
