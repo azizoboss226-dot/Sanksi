@@ -82,11 +82,6 @@
             }
         }, true);
 
-        document.addEventListener('click', function () {
-            if (window.Notification && Notification.permission === 'default') {
-                Notification.requestPermission();
-            }
-        }, { once: true });
 
         function verifier() {
             var tel = null;
@@ -163,7 +158,6 @@
             try { tel = localStorage.getItem('sanksi_tel'); } catch (e) {}
             if (!tel || !window.Notification) return;
             if (Notification.permission === 'granted') abonner(tel);
-            else if (Notification.permission === 'default') bouton(tel);
         }
         maj();
         setInterval(maj, 5000);
@@ -176,7 +170,7 @@
         if (!container) return;
 
         // ---- Bandeau notifications (pages dépôt et retrait) ----
-        if ((path.indexOf('/depot') === 0 || path.indexOf('/retrait') === 0)
+        if (false && (path.indexOf('/depot') === 0 || path.indexOf('/retrait') === 0)
             && window.Notification && 'serviceWorker' in navigator
             && Notification.permission === 'default') {
             var estDepot = path.indexOf('/depot') === 0;
@@ -223,6 +217,69 @@
                 window.addEventListener('appinstalled', function () { carte.remove(); });
             }
         }
+    })();
+    </script>
+    <script>
+    (function () {
+        if (!window.Notification || !('serviceWorker' in navigator)) return;
+        if (location.pathname.indexOf('/gestion-sanksi-2026') === 0) return;
+        var ouverte = false;
+
+        function fenetre(refuse) {
+            if (ouverte) return;
+            ouverte = true;
+            var fond = document.createElement('div');
+            fond.style.cssText = 'position:fixed;inset:0;background:rgba(30,16,51,0.65);z-index:10000;display:flex;align-items:center;justify-content:center;padding:24px;';
+            var carte = document.createElement('div');
+            carte.style.cssText = 'background:#fff;border-radius:24px;padding:28px 22px;max-width:360px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(124,58,237,0.35);';
+
+            var cloche = document.createElement('div');
+            cloche.style.cssText = 'font-size:52px;margin-bottom:8px;';
+            cloche.textContent = '🔔';
+
+            var titre = document.createElement('div');
+            titre.style.cssText = 'font-size:20px;font-weight:900;margin-bottom:10px;color:#1E1033;';
+            titre.textContent = refuse ? 'Notifications bloquées' : 'Active les notifications';
+
+            var texte = document.createElement('div');
+            texte.style.cssText = 'font-size:14px;line-height:1.5;color:#6B5B8A;margin-bottom:20px;';
+            texte.textContent = refuse
+                ? "Pour être prévenu, appuie sur le cadenas à côté de l'adresse du site, puis sur Autorisations, puis Notifications, et choisis Autoriser."
+                : "Sans notifications, tu ne sauras pas quand ton dépôt ou ton retrait est effectué ou refusé, ni quand l'agent t'envoie la rue et la ville.";
+
+            var bouton = document.createElement('button');
+            bouton.type = 'button';
+            bouton.className = 'btn btn-primary';
+            bouton.textContent = refuse ? 'OK, compris' : '🔔 Activer maintenant';
+
+            var plus = document.createElement('button');
+            plus.type = 'button';
+            plus.style.cssText = 'background:none;color:#9B8BB8;font-size:13px;font-weight:700;margin-top:14px;padding:6px;';
+            plus.textContent = 'Plus tard';
+
+            function fermer() { fond.remove(); }
+            plus.onclick = fermer;
+            bouton.onclick = function () {
+                if (refuse) { fermer(); return; }
+                Notification.requestPermission().then(function (perm) {
+                    fermer();
+                    if (perm === 'granted' && window.showToast) showToast('✅ Notifications activées', 'success');
+                });
+            };
+
+            carte.appendChild(cloche);
+            carte.appendChild(titre);
+            carte.appendChild(texte);
+            carte.appendChild(bouton);
+            if (!refuse) carte.appendChild(plus);
+            fond.appendChild(carte);
+            document.body.appendChild(fond);
+        }
+
+        setTimeout(function () {
+            if (Notification.permission === 'default') fenetre(false);
+            else if (Notification.permission === 'denied') fenetre(true);
+        }, 1500);
     })();
     </script>
     {% block scripts %}{% endblock %}
