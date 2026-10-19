@@ -44,6 +44,11 @@ def init_db():
 
 init_db()
 
+def cle_tel(t):
+    d = "".join(ch for ch in (t or "") if ch.isdigit())
+    return d[-8:]
+
+
 def pousser(telephone, message, url="/"):
     import os, json
     cle = os.environ.get("VAPID_PRIVATE_KEY")
@@ -55,7 +60,7 @@ def pousser(telephone, message, url="/"):
         return
     conn = sqlite3.connect('sanksi.db')
     c = conn.cursor()
-    c.execute("SELECT endpoint, p256dh, auth FROM push_subs WHERE telephone = ?", (telephone,))
+    c.execute("SELECT endpoint, p256dh, auth FROM push_subs WHERE substr(replace(replace(replace(replace(telephone,' ',''),'+',''),'-',''),'.',''), -8) = ?", (cle_tel(telephone),))
     subs = c.fetchall()
     conn.close()
     sujet = os.environ.get("VAPID_SUBJECT", "mailto:admin@example.com")
@@ -346,7 +351,7 @@ def api_notifications():
         return jsonify([])
     conn = sqlite3.connect('sanksi.db')
     c = conn.cursor()
-    c.execute("SELECT id, message FROM notifications WHERE telephone = ? AND lu = 0 ORDER BY id", (tel,))
+    c.execute("SELECT id, message FROM notifications WHERE substr(replace(replace(replace(replace(telephone,' ',''),'+',''),'-',''),'.',''), -8) = ? AND lu = 0 ORDER BY id", (cle_tel(tel),))
     rows = c.fetchall()
     for r in rows:
         c.execute("UPDATE notifications SET lu = 1 WHERE id = ?", (r[0],))
