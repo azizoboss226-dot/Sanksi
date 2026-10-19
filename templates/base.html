@@ -220,5 +220,39 @@
     })();
     </script>
     {% block scripts %}{% endblock %}
+
+<script>
+    // ===== GESTION DES NOTIFICATIONS =====
+    function initNotifPrompts() {
+        if (!('Notification' in window)) return;
+        
+        // Si permission déjà accordée/bloquée ou si l'utilisateur a dit "Plus tard"
+        if (Notification.permission !== 'default' || localStorage.getItem('sanksi_notif_dismissed') === 'true') {
+            document.querySelectorAll('.notif-prompt').forEach(el => el.style.display = 'none');
+            return;
+        }
+        
+        // Sinon, afficher le bandeau
+        document.querySelectorAll('.notif-prompt').forEach(el => el.style.display = 'flex');
+    }
+
+    function askNotificationPermission() {
+        Notification.requestPermission().then(perm => {
+            if (perm === 'granted') {
+                if (window.showToast) showToast('✅ Notifications activées !', 'success');
+            } else {
+                if (window.showToast) showToast('Notifications bloquées', 'warning');
+            }
+            dismissNotifPrompt();
+        });
+    }
+
+    function dismissNotifPrompt() {
+        localStorage.setItem('sanksi_notif_dismissed', 'true');
+        document.querySelectorAll('.notif-prompt').forEach(el => el.style.display = 'none');
+    }
+
+    document.addEventListener('DOMContentLoaded', initNotifPrompts);
+</script>
 </body>
 </html>
