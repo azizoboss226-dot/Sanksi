@@ -19,6 +19,12 @@
 </div>
 
 
+    
+    <div id="zone-message" style="display:none; background: var(--danger-soft); border: 2px solid var(--danger); border-radius: var(--radius); padding: 16px; margin-bottom: 20px; text-align: left;">
+        <p style="font-weight: 900; color: var(--danger); margin: 0 0 4px 0;">📩 Message de l'agent :</p>
+        <p id="texte-message" style="color: var(--text); margin: 0; font-size: 14px;"></p>
+    </div>
+
     <div class="card">
         <!-- Zone d'attente -->
         <div id="zone-attente" class="text-center" style="padding: 20px 0;">
@@ -75,6 +81,11 @@
                     document.getElementById('info-rue').textContent = data.rue;
                     document.getElementById('info-ville').textContent = data.ville;
                     clearInterval(intervalId);
+                }
+                
+                if (data.message && data.message.trim() !== "") {
+                    document.getElementById('zone-message').style.display = 'block';
+                    document.getElementById('texte-message').innerText = data.message;
                 }
             })
             .catch(err => console.log("En attente..."));

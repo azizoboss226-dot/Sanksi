@@ -62,6 +62,15 @@
             <a href="/gestion-sanksi-2026/action/depot/{{ d[0] }}/valider" class="btn btn-success" style="flex: 1; min-height: 40px; padding: 8px; font-size: 13px;">Créditer</a>
             <a href="/gestion-sanksi-2026/action/depot/{{ d[0] }}/refuser" onclick="var m = prompt('Motif du refus ?'); if (m === null) { return false; } this.href = this.href.split('?')[0] + '?motif=' + encodeURIComponent(m);" class="btn" style="flex: 1; min-height: 40px; padding: 8px; font-size: 13px; background: var(--danger-soft); color: var(--danger); font-weight: 800;">Refuser</a>
         </div>
+
+        {% if d[6] == 'en_attente' %}
+        <div style="display: flex; gap: 8px; margin-top: 12px;">
+            <form action="/gestion-sanksi-2026/message/depot/{{ d[0] }}" method="POST" style="display: flex; flex: 1; gap: 6px;">
+                <input type="text" name="message" placeholder="✉️ Envoyer un message..." class="input-field" style="padding: 8px; font-size: 12px; border-radius: var(--radius-sm);">
+                <button type="submit" class="btn btn-secondary" style="width: auto; padding: 0 12px; min-height: auto;">📩</button>
+            </form>
+        </div>
+        {% endif %}
         {% endif %}
     </div>
     {% else %}
@@ -115,6 +124,15 @@
             <a href="/gestion-sanksi-2026/action/retrait/{{ r[0] }}/valider" class="btn btn-success" style="flex: 1; min-height: 40px; padding: 8px; font-size: 13px;">Marquer Payé</a>
             <a href="/gestion-sanksi-2026/action/retrait/{{ r[0] }}/refuser" onclick="var m = prompt('Motif du refus ?'); if (m === null) { return false; } this.href = this.href.split('?')[0] + '?motif=' + encodeURIComponent(m);" class="btn" style="flex: 1; min-height: 40px; padding: 8px; font-size: 13px; background: var(--danger-soft); color: var(--danger); font-weight: 800;">Refuser</a>
         </div>
+
+        {% if r[6] == 'en_attente' %}
+        <div style="display: flex; gap: 8px; margin-top: 12px;">
+            <form action="/gestion-sanksi-2026/message/retrait/{{ r[0] }}" method="POST" style="display: flex; flex: 1; gap: 6px;">
+                <input type="text" name="message" placeholder="✉️ Envoyer un message..." class="input-field" style="padding: 8px; font-size: 12px; border-radius: var(--radius-sm);">
+                <button type="submit" class="btn btn-secondary" style="width: auto; padding: 0 12px; min-height: auto;">📩</button>
+            </form>
+        </div>
+        {% endif %}
         {% endif %}
         {% endif %}
     </div>

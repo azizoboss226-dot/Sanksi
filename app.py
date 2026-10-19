@@ -113,13 +113,14 @@ def confirmer_depot():
     c.execute("""INSERT INTO demandes (reference, montant, operateur, id_1xbet, telephone, parrain, created_at) 
                  VALUES (?, ?, ?, ?, ?, ?)""", 
               (reference, montant, operateur, id_1xbet, telephone, datetime.now().isoformat()))
+    demande_id = c.lastrowid
     conn.commit()
     conn.close()
 
     msg = f"🚨 <b>NOUVEAU DÉPÔT</b>\n\n💰 Montant : <b>{montant} FCFA</b>\n📱 Opérateur : {operateur}\n🆔 ID 1xbet : <b>{id_1xbet}</b>\n📞 Téléphone : {telephone}\n🔖 Réf : {reference}\n\n👉 <a href='https://sanksi.zevcloud.app/gestion-sanksi-2026'>Valider le dépôt (Admin)</a>"
     envoyer_telegram(msg)
 
-    return render_template("confirmation_depot.html", reference=reference, montant=montant)
+    return render_template("confirmation_depot.html", reference=reference, montant=montant, demande_id=demande_id)
 
 # --- RETRAIT : ETAPE 1 (Question) ---
 @app.route("/retrait/debut", methods=["GET", "POST"])
@@ -164,11 +165,22 @@ def retrait():
     return render_template("retrait.html", montant=montant, operateur=operateur)
 
 
+
+@app.route("/api/depot/<int:id>")
+def api_depot(id):
+    conn = sqlite3.connect('sanksi.db')
+    c = conn.cursor()
+    c.execute("SELECT statut, message_admin FROM demandes WHERE id = ?", (id,))
+    row = c.fetchone()
+    conn.close()
+    if not row: return {"statut": "introuvable"}
+    return {"statut": row[0], "message": row[1] or ""}
+
 @app.route("/api/retrait/<int:id>")
 def api_retrait(id):
     conn = sqlite3.connect('sanksi.db')
     c = conn.cursor()
-    c.execute("SELECT statut, code_retrait FROM retraits WHERE id = ?", (id,))
+    c.execute("SELECT statut, code_retrait, message_admin FROM retraits WHERE id = ?", (id,))
     row = c.fetchone()
     conn.close()
     if not row:
@@ -184,7 +196,7 @@ def api_retrait(id):
         info_rue = infos[0]
         info_ville = infos[1]
         
-    return {"statut": statut, "rue": info_rue, "ville": info_ville}
+    return {"statut": statut, "rue": info_rue, "ville": info_ville, "message": row[2] or ""}
 
 
 @app.route("/retrait/confirmer", methods=["POST"])
@@ -307,6 +319,29 @@ def export_csv():
         writer.writerow(['Retrait', r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7]])
     
     return Response(output.getvalue(), mimetype="text/csv", headers={"Content-Disposition": "attachment;filename=sanksi_export.csv"})
+
+
+@app.route("/gestion-sanksi-2026/message/<type_op>/<int:id>", methods=["POST"])
+def admin_message(type_op, id):
+    if not session.get('admin'): return redirect("/gestion-sanksi-2026")
+    message = request.form.get("message")
+    conn = sqlite3.connect('sanksi.db')
+    c = conn.cursor()
+    if type_op == 'depot':
+        c.execute("UPDATE demandes SET message_admin = ? WHERE id = ?", (message, id))
+        c.execute("SELECT telephone FROM demandes WHERE id = ?", (id,))
+    else:
+        c.execute("UPDATE retraits SET message_admin = ? WHERE id = ?", (message, id))
+        c.execute("SELECT telephone FROM retraits WHERE id = ?", (id,))
+    tel = c.fetchone()
+    conn.commit()
+    conn.close()
+    
+    # On envoie aussi une notification Push
+    if tel and tel[0] and message:
+        envoyer_push(tel[0], "📩 Message de l'agent", message)
+        
+    return redirect("/gestion-sanksi-2026")
 
 @app.route("/gestion-sanksi-2026/preparer/<int:id>", methods=["POST"])
 def admin_preparer_retrait(id):
