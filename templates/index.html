@@ -156,8 +156,14 @@
             alert("Le montant minimum est de 500 FCFA");
             return;
         }
-        // On redirige vers la page de dépôt avec le montant et l'opérateur
-        window.location.href = `/depot?montant=${montant}&operateur=${currentOperator}`;
+        
+        if (currentTab === 'depot') {
+            // Dépôt : on va vers /depot
+            window.location.href = `/depot?montant=${montant}&operateur=${currentOperator}`;
+        } else {
+            // Retrait : on va vers /retrait/debut (la page avec la question)
+            window.location.href = `/retrait/debut?montant=${montant}&operateur=${currentOperator}`;
+        }
     }
 </script>
 
