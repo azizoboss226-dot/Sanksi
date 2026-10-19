@@ -30,6 +30,28 @@
 
     {% if tel %}
         <!-- Dépôts -->
+        
+    {% if tel %}
+    <div class="card" style="background: linear-gradient(135deg, var(--primary-soft), white); border: 2px solid var(--primary); margin-bottom: 24px;">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+            <div style="font-size: 28px;">🎁</div>
+            <div>
+                <div style="font-weight: 900; font-size: 15px; color: var(--text);">Invite tes amis !</div>
+                <div style="font-size: 12px; color: var(--text-muted);">Gagne des bonus sur tes prochains dépôts.</div>
+            </div>
+        </div>
+        
+        <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+            <input type="text" readonly value="{{ tel }}" class="input-field" style="text-align: center; font-weight: 900; color: var(--primary); background: white;">
+            <button onclick="copyToClipboard('{{ tel }}')" class="btn btn-primary" style="width: auto; padding: 0 16px; min-height: 48px;">📋</button>
+        </div>
+        
+        <a href="https://wa.me/?text=Salut%20!%20Recharge%20ton%20compte%201xBet%20rapidement%20et%20en%20toute%20s%C3%A9curit%C3%A9%20avec%20SANKSI.%20Utilise%20mon%20code%20parrain%20%3A%20{{ tel }}%20-%20https%3A%2F%2Fsanksi.zevcloud.app" target="_blank" class="btn" style="background: #25D366; color: white; width: 100%;">
+            💬 Partager sur WhatsApp
+        </a>
+    </div>
+    {% endif %}
+
         <h2 class="section-title">Mes Dépôts</h2>
         {% if demandes %}
             {% for d in demandes %}
@@ -75,4 +97,24 @@
         {% endif %}
     {% endif %}
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function copyToClipboard(text) {
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(text).then(() => {
+                if (window.showToast) showToast('✅ Code parrain copié !', 'success');
+            });
+        } else {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            ta.remove();
+            if (window.showToast) showToast('✅ Code parrain copié !', 'success');
+        }
+    }
+</script>
 {% endblock %}
