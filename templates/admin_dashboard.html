@@ -13,6 +13,22 @@
 
 <div class="page fade-in">
 
+    
+    <!-- Bandeau Maintenance -->
+    <div class="card" style="display: flex; justify-content: space-between; align-items: center; background: {% if is_maintenance %}var(--danger-soft){% else %}var(--success-soft){% endif %}; border-color: {% if is_maintenance %}var(--danger){% else %}var(--success){% endif %}; margin-bottom: 24px;">
+        <div>
+            <p style="font-weight: 900; margin: 0; color: {% if is_maintenance %}var(--danger){% else %}#047857{% endif %};">
+                {% if is_maintenance %}⚠️ Mode Maintenance ACTIVÉ{% else %}✅ Service Ouvert{% endif %}
+            </p>
+            <p style="font-size: 12px; margin: 4px 0 0 0; color: var(--text-muted);">
+                {% if is_maintenance %}Les clients ne peuvent plus faire de demandes.{% else %}Les clients peuvent déposer et retirer.{% endif %}
+            </p>
+        </div>
+        <a href="/gestion-sanksi-2026/toggle-maintenance" class="btn" style="width: auto; padding: 10px 16px; min-height: auto; font-size: 12px; background: {% if is_maintenance %}var(--success){% else %}var(--danger){% endif %}; color: white;">
+            {% if is_maintenance %}Rouvrir{% else %}Fermer{% endif %}
+        </a>
+    </div>
+
     <!-- Statistiques -->
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px;">
         <div class="card" style="padding: 16px; text-align: center; border-top: 4px solid var(--success);">

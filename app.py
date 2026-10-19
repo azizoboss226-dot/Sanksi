@@ -88,6 +88,17 @@ def generer_reference():
     aleatoire = ''.join(random.choices(string.ascii_uppercase + string.digits, k=4))
     return f"NC-{date_str}-{aleatoire}"
 
+
+import json
+
+def check_maintenance():
+    try:
+        with open('config.json', 'r') as f:
+            config = json.load(f)
+            return config.get('maintenance', False)
+    except:
+        return False
+
 @app.route("/")
 def index():
     return render_template("index.html")
@@ -95,6 +106,7 @@ def index():
 # --- DEPOT ---
 @app.route("/depot")
 def depot():
+    if check_maintenance(): return render_template("maintenance.html")
     montant = request.args.get('montant', '0')
     operateur = request.args.get('operateur', 'Orange')
     reference = generer_reference()
@@ -125,6 +137,7 @@ def confirmer_depot():
 # --- RETRAIT : ETAPE 1 (Question) ---
 @app.route("/retrait/debut", methods=["GET", "POST"])
 def retrait_debut():
+    if check_maintenance(): return render_template("maintenance.html")
     montant = request.args.get('montant', '0')
     operateur = request.args.get('operateur', 'Orange')
     
@@ -293,9 +306,20 @@ def admin():
                            total_retraits_count=total_retraits_count,
                            total_retraits_montant=total_retraits_montant,
                            attente_depots=attente_depots,
-                           attente_retraits=attente_retraits)
+                           attente_retraits=attente_retraits, is_maintenance=check_maintenance())
 
 
+
+
+@app.route("/gestion-sanksi-2026/toggle-maintenance")
+def toggle_maintenance():
+    if not session.get('admin'): return redirect("/gestion-sanksi-2026")
+    try:
+        with open('config.json', 'r') as f: config = json.load(f)
+    except: config = {}
+    config['maintenance'] = not config.get('maintenance', False)
+    with open('config.json', 'w') as f: json.dump(config, f)
+    return redirect("/gestion-sanksi-2026")
 
 @app.route("/gestion-sanksi-2026/export-csv")
 def export_csv():

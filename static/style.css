@@ -669,3 +669,52 @@ button { font-family: inherit; cursor: pointer; border: none; }
     from { transform: scale(1); }
     to { transform: scale(1.05); }
 }
+
+/* Barre de navigation en bas */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 480px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-around;
+    padding: 10px 0 15px 0; /* Padding plus grand en bas pour les écrans avec encoche */
+    z-index: 1000;
+}
+
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-decoration: none;
+    color: var(--text-muted);
+    font-size: 11px;
+    font-weight: 700;
+    transition: color 0.2s, transform 0.15s;
+}
+
+.nav-item:active {
+    transform: scale(0.9);
+}
+
+.nav-item.active {
+    color: var(--primary);
+}
+
+.nav-item svg {
+    width: 24px;
+    height: 24px;
+    margin-bottom: 4px;
+    fill: currentColor;
+}
+
+/* Ajouter un espace en bas des pages pour ne pas cacher le contenu sous la barre */
+.app-container {
+    padding-bottom: 80px;
+}
