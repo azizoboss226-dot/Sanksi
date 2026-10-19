@@ -45,7 +45,9 @@
         .key.action { color: #38BDF8; }
         
         /* Bouton principal */
-        .btn-main { background: #38BDF8; color: #0F172A; font-weight: 900; font-size: 18px; border: none; border-radius: 16px; padding: 20px; margin: 0 20px 20px 20px; cursor: pointer; box-shadow: 0 8px 16px rgba(56, 189, 248, 0.3); }
+        .btn-main { background: #38BDF8; color: #0F172A; font-weight: 900; font-size: 18px; border: none; border-radius: 16px; padding: 20px; margin: 0 20px 20px 20px; cursor: pointer; box-shadow: 0 8px 16px rgba(56, 189, 248, 0.3); transition: all 0.3s ease; }
+        .btn-main:active { transform: scale(0.98); }
+        .btn-main.retrait-mode { background: #10B981; box-shadow: 0 8px 16px rgba(16, 185, 129, 0.3); }
     </style>
 </head>
 <body>
@@ -68,9 +70,9 @@
 
     <!-- Choix Opérateur -->
     <div class="operators">
-        <div class="op-btn op-orange active" onclick="selectOperator('Orange', this)">Orange<br>Money</div>
-        <div class="op-btn op-moov" onclick="selectOperator('Moov', this)">Moov<br>Money</div>
-        <div class="op-btn op-wave" onclick="selectOperator('Wave', this)">Wave</div>
+        <div class="op-btn op-orange active" style="box-shadow: 0 4px 15px rgba(255, 121, 0, 0.4);" onclick="selectOperator('Orange', this)">Orange<br>Money</div>
+        <div class="op-btn op-moov" style="box-shadow: 0 4px 15px rgba(0, 102, 204, 0.4);" onclick="selectOperator('Moov', this)">Moov<br>Money</div>
+        <div class="op-btn op-wave" style="box-shadow: 0 4px 15px rgba(29, 195, 243, 0.4);" onclick="selectOperator('Wave', this)">Wave</div>
     </div>
 
     <!-- Onglets -->
@@ -127,7 +129,13 @@
         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
         el.classList.add('active');
         currentTab = tab;
-        document.querySelector('.btn-main').innerText = tab === 'depot' ? 'Continuer le dépôt' : 'Continuer le retrait';
+        const btn = document.querySelector('.btn-main');
+        btn.innerText = tab === 'depot' ? 'Continuer le dépôt' : 'Continuer le retrait';
+        if (tab === 'retrait') {
+            btn.classList.add('retrait-mode');
+        } else {
+            btn.classList.remove('retrait-mode');
+        }
     }
 
     function updateDisplay() {

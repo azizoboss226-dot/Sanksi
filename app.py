@@ -198,12 +198,45 @@ def admin():
 
     conn = sqlite3.connect('sanksi.db')
     c = conn.cursor()
+    
+    # 1. Récupérer les listes
     c.execute("SELECT * FROM demandes ORDER BY id DESC")
     demandes = c.fetchall()
     c.execute("SELECT * FROM retraits ORDER BY id DESC")
     retraits = c.fetchall()
+    
+    # 2. Calculer les statistiques
+    # Total des dépôts validés
+    c.execute("SELECT COUNT(*), SUM(montant) FROM demandes WHERE statut = 'valide'")
+    res = c.fetchone()
+    total_depots_count = res[0] or 0
+    total_depots_montant = res[1] or 0
+    
+    # Total des retraits validés (payés)
+    c.execute("SELECT COUNT(*), SUM(montant) FROM retraits WHERE statut = 'valide'")
+    res = c.fetchone()
+    total_retraits_count = res[0] or 0
+    total_retraits_montant = res[1] or 0
+    
+    # Demandes en attente (dépôts)
+    c.execute("SELECT COUNT(*) FROM demandes WHERE statut = 'en_attente'")
+    attente_depots = c.fetchone()[0] or 0
+
+    # Demandes en attente (retraits)
+    c.execute("SELECT COUNT(*) FROM retraits WHERE statut IN ('en_attente', 'preparation', 'prepare')")
+    attente_retraits = c.fetchone()[0] or 0
+
     conn.close()
-    return render_template("admin_dashboard.html", demandes=demandes, retraits=retraits)
+    
+    return render_template("admin_dashboard.html", 
+                           demandes=demandes, 
+                           retraits=retraits,
+                           total_depots_count=total_depots_count,
+                           total_depots_montant=total_depots_montant,
+                           total_retraits_count=total_retraits_count,
+                           total_retraits_montant=total_retraits_montant,
+                           attente_depots=attente_depots,
+                           attente_retraits=attente_retraits)
 
 
 @app.route("/gestion-sanksi-2026/preparer/<int:id>", methods=["POST"])
