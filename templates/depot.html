@@ -7,8 +7,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
-        body { font-family: 'Inter', sans-serif; background-color: #0F172A; color: #F8FAFC; margin: 0; padding: 0; height: 100vh; display: flex; flex-direction: column; }
-        .app-container { max-width: 480px; margin: 0 auto; width: 100%; height: 100%; display: flex; flex-direction: column; background: #0F172A; padding: 20px; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background-color: #0F172A; color: #F8FAFC; margin: 0; padding: 0; min-height: 100vh; display: flex; flex-direction: column; }
+        .app-container { max-width: 480px; margin: 0 auto; width: 100%; flex: 1; display: flex; flex-direction: column; background: #0F172A; padding: 20px; box-sizing: border-box; }
         
         .header-title { font-size: 20px; font-weight: 900; color: #38BDF8; text-align: center; margin-bottom: 20px; }
         .step-card { background: #1E293B; border: 1px solid #334155; border-radius: 16px; padding: 20px; margin-bottom: 16px; }
@@ -23,7 +23,7 @@
 <body>
 
 <div class="app-container">
-    <a href="/" style="color: #94A3B8; text-decoration: none; margin-bottom: 20px;">← Retour</a>
+    <a href="/" style="color: #94A3B8; text-decoration: none; margin-bottom: 20px; display: inline-block;">← Retour</a>
     <div class="header-title">Finaliser le dépôt</div>
 
     <!-- Montant -->
@@ -39,19 +39,29 @@
         <div class="merchant-number">+226 79 27 12 39</div>
         
         <p style="font-weight: 800; font-size: 16px; margin: 20px 0 10px 0;">2. Utilisez cette référence :</p>
-        <div class="merchant-number" style="color: #FCD34D; border-color: #FCD34D;">NC-20261019-18C9</div>
+        <div class="merchant-number" style="color: #FCD34D; border-color: #FCD34D;">{{ reference }}</div>
         
         <div class="timer">⏳ 02:59</div>
     </div>
 
-    <!-- ID Joueur -->
-    <div class="step-card">
-        <label style="font-weight: 800; font-size: 14px;">3. Ton ID Joueur 1xBet</label>
-        <p style="color: #94A3B8; font-size: 12px; margin: 4px 0 0 0;">Pour que nous puissions créditer ton compte.</p>
-        <input type="text" class="input-field" placeholder="Ex: 123456789">
-    </div>
+    <!-- Formulaire de validation -->
+    <form action="/depot/confirmer" method="POST">
+        <input type="hidden" name="montant" value="{{ montant }}">
+        <input type="hidden" name="operateur" value="{{ operateur }}">
+        <input type="hidden" name="reference" value="{{ reference }}">
 
-    <button class="btn-pay">J'ai effectué le paiement</button>
+        <div class="step-card">
+            <label style="font-weight: 800; font-size: 14px;">3. Ton ID Joueur 1xBet</label>
+            <input type="text" name="id_1xbet" required class="input-field" placeholder="Ex: 123456789">
+        </div>
+
+        <div class="step-card">
+            <label style="font-weight: 800; font-size: 14px;">4. Ton numéro de téléphone (celui du dépôt)</label>
+            <input type="tel" name="telephone" required class="input-field" placeholder="Ex: 70 00 00 00">
+        </div>
+
+        <button type="submit" class="btn-pay">J'ai effectué le paiement</button>
+    </form>
 </div>
 
 </body>
