@@ -205,15 +205,7 @@
                 if (ref) container.insertBefore(carte, ref);
                 else container.appendChild(carte);
 
-                document.getElementById('btn-install').onclick = function () {
-                    if (evt) {
-                        evt.prompt();
-                    } else if (ios) {
-                        alert("Sur iPhone : appuie sur le bouton Partager de Safari, puis sur « Sur l'écran d'accueil ».");
-                    } else {
-                        alert("Ouvre le menu de ton navigateur (les 3 points), puis appuie sur « Installer l'application » ou « Ajouter à l'écran d'accueil ».");
-                    }
-                };
+                document.getElementById('btn-install').onclick = window.installApp;
                 window.addEventListener('appinstalled', function () { carte.remove(); });
             }
         }
