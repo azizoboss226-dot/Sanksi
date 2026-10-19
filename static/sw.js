@@ -5,6 +5,8 @@ self.addEventListener('push', function (event) {
   event.waitUntil(
     self.registration.showNotification(data.title || 'SANKSI', {
       body: data.body || '',
+      icon: '/static/icon-192.png',
+      badge: '/static/icon-192.png',
       data: { url: data.url || '/' }
     })
   );

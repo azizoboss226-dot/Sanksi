@@ -5,3 +5,4 @@ __pycache__/
 .venv/
 venv/
 sanksi.db
+static/logo-source.png
