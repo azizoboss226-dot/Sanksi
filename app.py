@@ -1,16 +1,18 @@
-from flask import Flask, render_template, request, redirect
+from flask import Flask, render_template, request, redirect, session
 import sqlite3
 import random
 import string
 from datetime import datetime
 
 app = Flask(__name__)
+app.secret_key = 'sanksi_secret_key_2026' # Nécessaire pour la session admin
 application = app 
 
 # --- Initialisation de la base de données ---
 def init_db():
     conn = sqlite3.connect('sanksi.db')
     c = conn.cursor()
+    # Table des dépôts
     c.execute('''CREATE TABLE IF NOT EXISTS demandes (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         reference TEXT,
@@ -21,12 +23,21 @@ def init_db():
         statut TEXT DEFAULT 'en_attente',
         created_at TEXT
     )''')
+    # Table des retraits
+    c.execute('''CREATE TABLE IF NOT EXISTS retraits (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        code_retrait TEXT,
+        montant INTEGER,
+        operateur TEXT,
+        telephone TEXT,
+        statut TEXT DEFAULT 'en_attente',
+        created_at TEXT
+    )''')
     conn.commit()
     conn.close()
 
 init_db()
 
-# --- Fonction pour générer une référence ---
 def generer_reference():
     date_str = datetime.now().strftime("%Y%m%d")
     aleatoire = ''.join(random.choices(string.ascii_uppercase + string.digits, k=4))
@@ -36,6 +47,7 @@ def generer_reference():
 def index():
     return render_template("index.html")
 
+# --- ROUTES DEPOT ---
 @app.route("/depot")
 def depot():
     montant = request.args.get('montant', '0')
@@ -58,17 +70,68 @@ def confirmer_depot():
               (reference, montant, operateur, id_1xbet, telephone, datetime.now().isoformat()))
     conn.commit()
     conn.close()
+    return render_template("confirmation_depot.html", reference=reference, montant=montant)
 
-    # Page de confirmation (simple)
-    return f"""
-    <div style="font-family: Arial; text-align: center; padding: 50px; background: #0F172A; color: white; height: 100vh;">
-        <h1 style="color: #38BDF8;">✅ Demande enregistrée !</h1>
-        <p>Merci <b>{id_1xbet}</b>. Ta demande de dépôt de <b>{montant} FCFA</b> via <b>{operateur}</b> a bien été reçue.</p>
-        <p>Référence : <b>{reference}</b></p>
-        <p>Un agent va vérifier ton paiement et créditer ton compte très rapidement.</p>
-        <a href="/" style="color: #38BDF8; margin-top: 20px; display: block;">Retour à l'accueil</a>
-    </div>
-    """
+# --- ROUTES RETRAIT ---
+@app.route("/retrait")
+def retrait():
+    montant = request.args.get('montant', '0')
+    operateur = request.args.get('operateur', 'Orange')
+    return render_template("retrait.html", montant=montant, operateur=operateur)
+
+@app.route("/retrait/confirmer", methods=["POST"])
+def confirmer_retrait():
+    montant = request.form.get("montant")
+    operateur = request.form.get("operateur")
+    code_retrait = request.form.get("code_retrait")
+    telephone = request.form.get("telephone")
+    
+    conn = sqlite3.connect('sanksi.db')
+    c = conn.cursor()
+    c.execute("""INSERT INTO retraits (code_retrait, montant, operateur, telephone, created_at) 
+                 VALUES (?, ?, ?, ?, ?)""", 
+              (code_retrait, montant, operateur, telephone, datetime.now().isoformat()))
+    conn.commit()
+    conn.close()
+    return render_template("confirmation_retrait.html", code_retrait=code_retrait, montant=montant)
+
+# --- ROUTES ADMIN ---
+@app.route("/admin", methods=["GET", "POST"])
+def admin():
+    if request.method == "POST":
+        password = request.form.get("password")
+        if password == "SanksiAdmin2026": # Mot de passe admin (tu pourras le changer)
+            session['admin'] = True
+            return redirect("/admin")
+        else:
+            return render_template("admin_login.html", erreur="Mot de passe incorrect")
+            
+    if not session.get('admin'):
+        return render_template("admin_login.html", erreur=None)
+
+    conn = sqlite3.connect('sanksi.db')
+    c = conn.cursor()
+    c.execute("SELECT * FROM demandes ORDER BY id DESC")
+    demandes = c.fetchall()
+    c.execute("SELECT * FROM retraits ORDER BY id DESC")
+    retraits = c.fetchall()
+    conn.close()
+    return render_template("admin_dashboard.html", demandes=demandes, retraits=retraits)
+
+@app.route("/admin/action/<type_op>/<int:id>/<action>")
+def admin_action(type_op, id, action):
+    if not session.get('admin'):
+        return redirect("/admin")
+    conn = sqlite3.connect('sanksi.db')
+    c = conn.cursor()
+    table = "demandes" if type_op == "depot" else "retraits"
+    if action == "valider":
+        c.execute(f"UPDATE {table} SET statut = 'valide' WHERE id = ?", (id,))
+    elif action == "refuser":
+        c.execute(f"UPDATE {table} SET statut = 'refuse' WHERE id = ?", (id,))
+    conn.commit()
+    conn.close()
+    return redirect("/admin")
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)

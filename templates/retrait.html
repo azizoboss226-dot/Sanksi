@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SANKSI - Retrait</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #0F172A; color: #F8FAFC; margin: 0; padding: 0; min-height: 100vh; display: flex; flex-direction: column; }
+        .app-container { max-width: 480px; margin: 0 auto; width: 100%; flex: 1; display: flex; flex-direction: column; background: #0F172A; padding: 20px; box-sizing: border-box; }
+        .header-title { font-size: 20px; font-weight: 900; color: #38BDF8; text-align: center; margin-bottom: 20px; }
+        .step-card { background: #1E293B; border: 1px solid #334155; border-radius: 16px; padding: 20px; margin-bottom: 16px; }
+        .amount-big { font-size: 32px; font-weight: 900; color: #38BDF8; text-align: center; margin: 10px 0; }
+        .input-field { width: 100%; padding: 14px; border-radius: 10px; background: #0F172A; border: 1px solid #334155; color: white; font-size: 16px; margin-top: 8px; box-sizing: border-box; }
+        .input-field:focus { outline: none; border-color: #38BDF8; }
+        .btn-pay { width: 100%; background: #38BDF8; color: #0F172A; font-weight: 900; font-size: 18px; border: none; border-radius: 12px; padding: 18px; cursor: pointer; margin-top: 20px; box-shadow: 0 4px 12px rgba(56, 189, 248, 0.3); }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <a href="/" style="color: #94A3B8; text-decoration: none; margin-bottom: 20px; display: inline-block;">← Retour</a>
+    <div class="header-title">Demande de Retrait</div>
+
+    <div class="step-card" style="text-align: center;">
+        <p style="color: #94A3B8; font-size: 14px; margin: 0;">Montant à retirer</p>
+        <div class="amount-big">{{ montant }} FCFA</div>
+        <p style="color: #38BDF8; font-size: 12px; font-weight: 700;">via {{ operateur }}</p>
+    </div>
+
+    <form action="/retrait/confirmer" method="POST">
+        <input type="hidden" name="montant" value="{{ montant }}">
+        <input type="hidden" name="operateur" value="{{ operateur }}">
+
+        <div class="step-card">
+            <label style="font-weight: 800; font-size: 14px;">1. Ton code de retrait 1xBet</label>
+            <input type="text" name="code_retrait" required class="input-field" placeholder="Ex: RET-123456">
+        </div>
+
+        <div class="step-card">
+            <label style="font-weight: 800; font-size: 14px;">2. Numéro qui reçoit l'argent</label>
+            <input type="tel" name="telephone" required class="input-field" placeholder="Ex: 70 00 00 00">
+        </div>
+
+        <button type="submit" class="btn-pay">Confirmer le retrait</button>
+    </form>
+</div>
+</body>
+</html>

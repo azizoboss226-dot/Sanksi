@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - SANKSI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-[#0F172A] text-white p-4">
+    <div class="max-w-md mx-auto">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-xl font-black text-[#38BDF8]">SANKSI Admin</h1>
+            <a href="/" class="text-sm text-gray-400">Site →</a>
+        </div>
+
+        <h2 class="text-sm font-bold text-gray-400 mb-2">DÉPÔTS EN ATTENTE</h2>
+        <div class="space-y-3 mb-8">
+            {% for d in demandes %}
+            <div class="bg-[#1E293B] p-4 rounded-xl border border-[#334155]">
+                <div class="flex justify-between items-start mb-2">
+                    <div>
+                        <p class="font-bold text-[#38BDF8]">{{ d[2] }} FCFA</p>
+                        <p class="text-xs text-gray-400">{{ d[3] }} · Réf: {{ d[1] }}</p>
+                    </div>
+                    <span class="text-xs px-2 py-1 rounded bg-{% if d[6]=='valide' %}green-900 text-green-300{% elif d[6]=='refuse' %}red-900 text-red-300{% else %}yellow-900 text-yellow-300{% endif %}">{{ d[6] }}</span>
+                </div>
+                <p class="text-sm mb-2"><b>ID 1xBet :</b> {{ d[4] }}</p>
+                <p class="text-sm mb-3"><b>Tel :</b> {{ d[5] }}</p>
+                {% if d[6] == 'en_attente' %}
+                <div class="flex gap-2">
+                    <a href="/admin/action/depot/{{ d[0] }}/valider" class="flex-1 bg-green-600 text-center py-2 rounded-lg text-sm font-bold">Crédité</a>
+                    <a href="/admin/action/depot/{{ d[0] }}/refuser" class="flex-1 bg-red-600 text-center py-2 rounded-lg text-sm font-bold">Refusé</a>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+
+        <h2 class="text-sm font-bold text-gray-400 mb-2">RETRAITS EN ATTENTE</h2>
+        <div class="space-y-3">
+            {% for r in retraits %}
+            <div class="bg-[#1E293B] p-4 rounded-xl border border-[#334155]">
+                <div class="flex justify-between items-start mb-2">
+                    <div>
+                        <p class="font-bold text-[#38BDF8]">{{ r[2] }} FCFA</p>
+                        <p class="text-xs text-gray-400">{{ r[3] }} · Code: {{ r[1] }}</p>
+                    </div>
+                    <span class="text-xs px-2 py-1 rounded bg-{% if r[5]=='valide' %}green-900 text-green-300{% elif r[5]=='refuse' %}red-900 text-red-300{% else %}yellow-900 text-yellow-300{% endif %}">{{ r[5] }}</span>
+                </div>
+                <p class="text-sm mb-3"><b>Tel :</b> {{ r[4] }}</p>
+                {% if r[5] == 'en_attente' %}
+                <div class="flex gap-2">
+                    <a href="/admin/action/retrait/{{ r[0] }}/valider" class="flex-1 bg-green-600 text-center py-2 rounded-lg text-sm font-bold">Payé</a>
+                    <a href="/admin/action/retrait/{{ r[0] }}/refuser" class="flex-1 bg-red-600 text-center py-2 rounded-lg text-sm font-bold">Refusé</a>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>
