@@ -742,3 +742,29 @@ button { font-family: inherit; cursor: pointer; border: none; }
     transform: translateX(-50%) translateY(0);
 }
 #pwa-banner img { width: 40px; height: 40px; border-radius: 8px; }
+
+/* ============ MODE SOMBRE ============ */
+[data-theme="dark"] {
+    --bg: #0F0A1E;
+    --bg-elevated: #1A1130;
+    --bg-deep: #150D28;
+    --border: #2D1F4C;
+    --border-strong: #3F2C69;
+    --text: #F8FAFC;
+    --text-muted: #A78BFA;
+    --text-dim: #7C6E9E;
+    --primary-soft: #2D1F4C;
+}
+[data-theme="dark"] .card, 
+[data-theme="dark"] .step-card, 
+[data-theme="dark"] .app-header,
+[data-theme="dark"] .key,
+[data-theme="dark"] .shortcut-btn,
+[data-theme="dark"] .bottom-nav {
+    background: var(--bg-elevated);
+    color: var(--text);
+}
+[data-theme="dark"] .input-field {
+    background: var(--bg-deep);
+    color: var(--text);
+}

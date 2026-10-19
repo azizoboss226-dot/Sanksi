@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}SANKSI - Aide & FAQ{% endblock %}
+
+{% block content %}
+<div class="page fade-in">
+    <a href="/" class="back-link">← Retour</a>
+    <h1 class="page-title">Aide & FAQ</h1>
+    <p class="text-muted text-center" style="margin-bottom: 24px; font-size: 14px;">Trouve rapidement les réponses à tes questions.</p>
+
+    <div style="display: flex; flex-direction: column; gap: 12px;">
+        <details class="card" style="padding: 16px; cursor: pointer;">
+            <summary style="font-weight: 800; color: var(--text);">Comment faire un dépôt ?</summary>
+            <p class="text-muted" style="font-size: 14px; margin-top: 10px; line-height: 1.5;">1. Sur l'accueil, choisis ton opérateur (Orange, Moov, Wave).<br>2. Tape le montant et clique sur "Continuer le dépôt".<br>3. Envoie l'argent au numéro indiqué.<br>4. Remplis tes infos 1xBet et valide.<br>Un agent créditera ton compte en quelques minutes.</p>
+        </details>
+
+        <details class="card" style="padding: 16px; cursor: pointer;">
+            <summary style="font-weight: 800; color: var(--text);">Combien de temps prend un dépôt ?</summary>
+            <p class="text-muted" style="font-size: 14px; margin-top: 10px; line-height: 1.5;">Généralement entre 2 et 10 minutes. Si tu as activé les notifications, tu recevras une alerte dès que ton compte est crédité.</p>
+        </details>
+
+        <details class="card" style="padding: 16px; cursor: pointer;">
+            <summary style="font-weight: 800; color: var(--text);">Comment faire un retrait ?</summary>
+            <p class="text-muted" style="font-size: 14px; margin-top: 10px; line-height: 1.5;">1. Choisis "Retrait" sur l'accueil et tape le montant.<br>2. Suis les instructions (si c'est ta première fois, demande de l'aide).<br>3. L'agent te donnera une rue et une ville à mettre sur 1xBet.<br>4. Une fois le retrait lancé sur 1xBet, donne ton code de retrait et ton numéro. L'argent t'est envoyé !</p>
+        </details>
+
+        <details class="card" style="padding: 16px; cursor: pointer;">
+            <summary style="font-weight: 800; color: var(--text);">Que faire si je me suis trompé de numéro ?</summary>
+            <p class="text-muted" style="font-size: 14px; margin-top: 10px; line-height: 1.5;">Ne t'inquiète pas. Un agent te laissera un message direct sur la page d'attente ou dans ton historique pour t'indiquer l'erreur. Contacte aussi le support WhatsApp avec le bouton vert en bas.</p>
+        </details>
+
+        <details class="card" style="padding: 16px; cursor: pointer;">
+            <summary style="font-weight: 800; color: var(--text);">Comment inviter un ami ?</summary>
+            <p class="text-muted" style="font-size: 14px; margin-top: 10px; line-height: 1.5;">Va dans ton Historique. Tu trouveras ton code parrain et un bouton "Partager sur WhatsApp". Quand ton ami fera un dépôt avec ton numéro, tu gagneras des points bonus !</p>
+        </details>
+    </div>
+
+    <div class="card text-center" style="margin-top: 24px; background: var(--bg-deep); border: none;">
+        <p style="font-weight: 800; margin: 0 0 10px 0;">Tu n'as pas trouvé ta réponse ?</p>
+        <a href="https://wa.me/22603292027?text=Bonjour%20SANKSI,%20j'ai%20une%20question" target="_blank" class="btn" style="background: #25D366; color: white;">💬 Écrire au support</a>
+    </div>
+</div>
+{% endblock %}

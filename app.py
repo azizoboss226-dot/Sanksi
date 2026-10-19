@@ -274,6 +274,11 @@ def confirmer_retrait():
     return render_template("confirmation_retrait.html", code_retrait=code_retrait, montant=montant)
 
 # --- HISTORIQUE ---
+
+@app.route("/faq")
+def faq():
+    return render_template("faq.html")
+
 @app.route("/historique", methods=["GET", "POST"])
 def historique():
     demandes = []
@@ -414,6 +419,15 @@ def admin_push_all():
             envoyer_push(abonne[0], "📣 Annonce SANKSI", message)
             
     return redirect("/gestion-sanksi-2026")
+
+
+@app.route("/gestion-sanksi-2026/backup")
+def admin_backup():
+    if not session.get('admin'): return redirect("/gestion-sanksi-2026")
+    from flask import send_file
+    import os
+    db_path = os.path.join(os.getcwd(), 'sanksi.db')
+    return send_file(db_path, as_attachment=True, download_name="sanksi_backup.db")
 
 @app.route("/gestion-sanksi-2026/export-csv")
 def export_csv():

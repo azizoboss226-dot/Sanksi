@@ -19,6 +19,14 @@
     <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
     <link rel="apple-touch-icon" href="{{ url_for('static', filename='icon-192.png') }}">
     {% block head %}{% endblock %}
+
+    <script>
+        // Appliquer le thème sauvegardé immédiatement
+        const savedTheme = localStorage.getItem('sanksi_theme');
+        if (savedTheme === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+        }
+    </script>
 </head>
 <body>
 
@@ -407,6 +415,18 @@
             <svg viewBox="0 0 24 24"><path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>
             Historique
         </a>
+        
+        <a href="#" onclick="toggleTheme(event)" class="nav-item" id="theme-btn">
+            <svg viewBox="0 0 24 24" id="theme-icon"><path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/></svg>
+            <span id="theme-text">Sombre</span>
+        </a>
+
+        
+        <a href="/faq" class="nav-item {% if request.path == '/faq' %}active{% endif %}">
+            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/></svg>
+            FAQ
+        </a>
+
         <a href="https://wa.me/22603292027?text=Bonjour%20SANKSI,%20j'ai%20besoin%20d'aide." target="_blank" class="nav-item">
             <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg>
             Support
@@ -439,6 +459,31 @@
             document.getElementById('pwa-banner').classList.remove('show');
             localStorage.setItem('sanksi_pwa_dismissed', 'true');
         };
+    </script>
+
+    <script>
+        function toggleTheme(e) {
+            e.preventDefault();
+            const html = document.documentElement;
+            const isDark = html.getAttribute('data-theme') === 'dark';
+            
+            if (isDark) {
+                html.removeAttribute('data-theme');
+                localStorage.setItem('sanksi_theme', 'light');
+                document.getElementById('theme-text').innerText = 'Sombre';
+            } else {
+                html.setAttribute('data-theme', 'dark');
+                localStorage.setItem('sanksi_theme', 'dark');
+                document.getElementById('theme-text').innerText = 'Clair';
+            }
+        }
+        
+        // Mettre à jour le texte du bouton au chargement
+        document.addEventListener('DOMContentLoaded', () => {
+            if (document.documentElement.getAttribute('data-theme') === 'dark') {
+                document.getElementById('theme-text').innerText = 'Clair';
+            }
+        });
     </script>
 </body>
 </html>
