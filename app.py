@@ -244,7 +244,7 @@ def historique():
 def admin():
     if request.method == "POST":
         password = request.form.get("password")
-        if password == os.environ.get("ADMIN_PASSWORD", "SanksiAdmin2026"):
+        if password == os.environ.get("ADMIN_PASSWORD"):
             session['admin'] = True
             return redirect("/gestion-sanksi-2026")
         else:
