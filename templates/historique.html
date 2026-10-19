@@ -100,6 +100,11 @@
                     {% endif %}
                 </div>
                 <p class="text-muted" style="font-size: 13px; margin: 4px 0;">ID 1xBet : <b style="color: var(--text);">{{ d[4] }}</b></p>
+                {% if loop.first %}
+                <a href="/depot?montant={{ d[2] }}&operateur={{ d[3] }}&id_1xbet={{ d[4] }}" class="btn btn-primary" style="padding: 10px; font-size: 13px; margin-top: 12px; width: 100%; display: block; text-align: center; border-radius: var(--radius-sm);">
+                    🔄 Refaire ce dépôt
+                </a>
+                {% endif %}
                 <p class="text-muted" style="font-size: 13px; margin: 4px 0;">Réf : <b style="color: var(--text);">{{ d[1] }}</b></p>
 
                 {% if d[-1] %}

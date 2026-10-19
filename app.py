@@ -123,8 +123,9 @@ def depot():
     if check_maintenance(): return render_template("maintenance.html")
     montant = request.args.get('montant', '0')
     operateur = request.args.get('operateur', 'Orange')
+    id_1xbet = request.args.get('id_1xbet', '')
     reference = generer_reference()
-    return render_template("depot.html", montant=montant, operateur=operateur, reference=reference)
+    return render_template("depot.html", montant=montant, operateur=operateur, reference=reference, id_1xbet=id_1xbet)
 
 @app.route("/depot/confirmer", methods=["POST"])
 def confirmer_depot():
