@@ -694,6 +694,42 @@ def admin_push_all():
                 
     return redirect("/gestion-sanksi-2026")
 
+
+@app.route("/gestion-sanksi-2026/action/<type_op>/<int:id>/<action>")
+def admin_action(type_op, id, action):
+    if not session.get('admin'): return redirect("/gestion-sanksi-2026")
+    
+    conn = sqlite3.connect('sanksi.db')
+    c = conn.cursor()
+    
+    # Mise à jour du statut
+    nouveau_statut = 'valide' if action == 'valider' else 'refuse'
+    
+    if type_op == 'depot':
+        c.execute("UPDATE demandes SET statut = ? WHERE id = ?", (nouveau_statut, id))
+        c.execute("SELECT telephone, montant FROM demandes WHERE id = ?", (id,))
+        row = c.fetchone()
+        if row and row[0]:
+            if action == 'valider':
+                envoyer_push(row[0], "✅ Dépôt validé !", f"Ton compte a été crédité de {row[1]} FCFA.")
+            else:
+                envoyer_push(row[0], "❌ Dépôt refusé", "Contacte le support pour plus d'infos.")
+                
+    elif type_op == 'retrait':
+        c.execute("UPDATE retraits SET statut = ? WHERE id = ?", (nouveau_statut, id))
+        c.execute("SELECT telephone, montant FROM retraits WHERE id = ?", (id,))
+        row = c.fetchone()
+        if row and row[0]:
+            if action == 'valider':
+                envoyer_push(row[0], "✅ Retrait payé !", f"Ton argent a été envoyé.")
+            else:
+                envoyer_push(row[0], "❌ Retrait refusé", "Contacte le support pour plus d'infos.")
+                
+    conn.commit()
+    conn.close()
+    
+    return redirect("/gestion-sanksi-2026")
+
 @app.route("/gestion-sanksi-2026/backup")
 def admin_backup():
     if not session.get('admin'): return redirect("/gestion-sanksi-2026")
