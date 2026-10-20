@@ -13,67 +13,51 @@ import urllib.parse
 
 
 
+
+
+
 def init_db():
     conn = sqlite3.connect('sanksi.db')
     c = conn.cursor()
+    c.execute("PRAGMA foreign_keys = ON;")
     
-    # 1. Table principale des dépôts
+    c.execute("""CREATE TABLE IF NOT EXISTS avis (
+        id INTEGER PRIMARY KEY AUTOINCREMENT, telephone TEXT, note INTEGER, commentaire TEXT, date_avis TEXT
+    )""")
+    
     c.execute("""CREATE TABLE IF NOT EXISTS demandes (
-        id INTEGER PRIMARY KEY AUTOINCREMENT, 
-        reference TEXT, 
-        montant TEXT, 
-        operateur TEXT, 
-        id_1xbet TEXT, 
-        telephone TEXT, 
-        statut TEXT DEFAULT 'en_attente', 
-        created_at TEXT,
-        parrain TEXT,
-        message_admin TEXT
+        id INTEGER PRIMARY KEY AUTOINCREMENT, reference TEXT, montant INTEGER, operateur TEXT, 
+        id_1xbet TEXT, telephone TEXT, statut TEXT DEFAULT 'en_attente', created_at TEXT, 
+        message_admin TEXT, parrain TEXT
     )""")
     
-    # 2. Table principale des retraits
-    c.execute("""CREATE TABLE IF NOT EXISTS retraits (
-        id INTEGER PRIMARY KEY AUTOINCREMENT, 
-        code_retrait TEXT, 
-        montant TEXT, 
-        operateur TEXT, 
-        nom TEXT, 
-        telephone TEXT, 
-        statut TEXT DEFAULT 'en_attente', 
-        created_at TEXT,
-        message_admin TEXT
-    )""")
-
-    # 3. Les autres tables
-    c.execute("""CREATE TABLE IF NOT EXISTS push_subs (
-        id INTEGER PRIMARY KEY AUTOINCREMENT, 
-        telephone TEXT, 
-        endpoint TEXT UNIQUE, 
-        p256dh TEXT, 
-        auth TEXT
-    )""")
-    c.execute("""CREATE TABLE IF NOT EXISTS historique_notifs (
-        id INTEGER PRIMARY KEY AUTOINCREMENT, 
-        message TEXT, 
-        date_envoi TEXT
-    )""")
-    c.execute("""CREATE TABLE IF NOT EXISTS reclamations (
-        id INTEGER PRIMARY KEY AUTOINCREMENT, 
-        telephone TEXT, 
-        type_op TEXT, 
-        id_op INTEGER, 
-        motif TEXT, 
-        statut TEXT DEFAULT 'en_attente', 
-        date_rec TEXT
-    )""")
-    c.execute("""CREATE TABLE IF NOT EXISTS login_attempts (
-        ip TEXT PRIMARY KEY, 
-        attempts INTEGER, 
-        blocked_until TEXT
-    )""")
     c.execute("""CREATE TABLE IF NOT EXISTS fidelite (
-        telephone TEXT PRIMARY KEY, 
-        points INTEGER DEFAULT 0
+        telephone TEXT PRIMARY KEY, points INTEGER DEFAULT 0
+    )""")
+    
+    c.execute("""CREATE TABLE IF NOT EXISTS historique_notifs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT, message TEXT, date_envoi TEXT
+    )""")
+    
+    c.execute("""CREATE TABLE IF NOT EXISTS login_attempts (
+        ip TEXT PRIMARY KEY, attempts INTEGER DEFAULT 0, blocked_until TEXT
+    )""")
+    
+    c.execute("""CREATE TABLE IF NOT EXISTS notifications (
+        id INTEGER PRIMARY KEY AUTOINCREMENT, telephone TEXT, message TEXT, lu INTEGER DEFAULT 0, created_at TEXT
+    )""")
+    
+    c.execute("""CREATE TABLE IF NOT EXISTS push_subs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT, telephone TEXT, endpoint TEXT UNIQUE, p256dh TEXT, auth TEXT
+    )""")
+    
+    c.execute("""CREATE TABLE IF NOT EXISTS reclamations (
+        id INTEGER PRIMARY KEY AUTOINCREMENT, telephone TEXT, type_op TEXT, id_op INTEGER, motif TEXT, statut TEXT DEFAULT 'en_attente', date_rec TEXT
+    )""")
+    
+    c.execute("""CREATE TABLE IF NOT EXISTS retraits (
+        id INTEGER PRIMARY KEY AUTOINCREMENT, code_retrait TEXT, montant INTEGER, operateur TEXT, 
+        nom TEXT, telephone TEXT, statut TEXT DEFAULT 'en_attente', created_at TEXT, message_admin TEXT
     )""")
     
     conn.commit()
@@ -81,6 +65,7 @@ def init_db():
 
 
 app = Flask(__name__)
+init_db()
 init_db()
 init_db()
 app.secret_key = 'sanksi_secret_key_2026'
