@@ -607,7 +607,12 @@ def admin():
     reclamations = c.fetchall()
     total_reclamations = len(reclamations)
     
+    # Calcul du Top Parrains
+    c.execute("SELECT parrain, COUNT(*), SUM(montant) FROM demandes WHERE parrain IS NOT NULL AND parrain != '' AND statut = 'valide' GROUP BY parrain ORDER BY SUM(montant) DESC LIMIT 5")
+    top_parrains = c.fetchall()
+    
     conn.close()
+
     return render_template("admin_dashboard.html", historique_notifs=historique_notifs, stats_orange=stats_orange, stats_moov=stats_moov, stats_wave=stats_wave, total_jour_op=total_jour_op, reclamations=reclamations, total_reclamations=total_reclamations, 
                            demandes=demandes, 
                            retraits=retraits,
