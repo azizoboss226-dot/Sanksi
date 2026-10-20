@@ -1,5 +1,31 @@
 {% extends "base.html" %}
-{% block title %}SANKSI — Dépôt en cours{% endblock %}
+{% block title %}SANKSI — Dépôt en cours
+<script>
+    // Relance panier abandonné après 5 minutes
+    document.addEventListener('DOMContentLoaded', () => {
+        const tel = localStorage.getItem('sanksi_tel');
+        const montant = "{{ montant }}";
+        
+        if (tel && montant && montant !== "0") {
+            // 5 minutes = 300 000 ms
+            const timerRelance = setTimeout(() => {
+                fetch('/api/relance-panier', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({telephone: tel, montant: montant})
+                });
+            }, 300000); 
+            
+            // Si l'utilisateur clique sur "J'ai effectué le paiement", on annule la relance
+            const form = document.querySelector('form');
+            if (form) {
+                form.addEventListener('submit', () => clearTimeout(timerRelance));
+            }
+        }
+    });
+</script>
+
+{% endblock %}
 
 {% block content %}
 <div class="page fade-in">
@@ -78,6 +104,32 @@
         <button type="submit" class="btn-main" style="margin: 0; width: 100%;">J'ai effectué le paiement</button>
     </form>
 </div>
+
+<script>
+    // Relance panier abandonné après 5 minutes
+    document.addEventListener('DOMContentLoaded', () => {
+        const tel = localStorage.getItem('sanksi_tel');
+        const montant = "{{ montant }}";
+        
+        if (tel && montant && montant !== "0") {
+            // 5 minutes = 300 000 ms
+            const timerRelance = setTimeout(() => {
+                fetch('/api/relance-panier', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({telephone: tel, montant: montant})
+                });
+            }, 300000); 
+            
+            // Si l'utilisateur clique sur "J'ai effectué le paiement", on annule la relance
+            const form = document.querySelector('form');
+            if (form) {
+                form.addEventListener('submit', () => clearTimeout(timerRelance));
+            }
+        }
+    });
+</script>
+
 {% endblock %}
 
 {% block scripts %}
@@ -128,4 +180,30 @@
         }
     }
 </script>
+
+<script>
+    // Relance panier abandonné après 5 minutes
+    document.addEventListener('DOMContentLoaded', () => {
+        const tel = localStorage.getItem('sanksi_tel');
+        const montant = "{{ montant }}";
+        
+        if (tel && montant && montant !== "0") {
+            // 5 minutes = 300 000 ms
+            const timerRelance = setTimeout(() => {
+                fetch('/api/relance-panier', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({telephone: tel, montant: montant})
+                });
+            }, 300000); 
+            
+            // Si l'utilisateur clique sur "J'ai effectué le paiement", on annule la relance
+            const form = document.querySelector('form');
+            if (form) {
+                form.addEventListener('submit', () => clearTimeout(timerRelance));
+            }
+        }
+    });
+</script>
+
 {% endblock %}

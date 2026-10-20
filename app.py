@@ -337,6 +337,45 @@ def api_avis_recents():
     conn.close()
     return {"avis": [{"tel": r[0], "note": r[1], "commentaire": r[2]} for r in rows]}
 
+
+@app.route("/api/reclamation", methods=["POST"])
+def api_reclamation():
+    data = request.get_json()
+    tel = data.get("telephone")
+    type_op = data.get("type_op")
+    id_op = data.get("id_op")
+    motif = data.get("motif")
+    
+    if tel and motif:
+        conn = sqlite3.connect('sanksi.db')
+        c = conn.cursor()
+        c.execute("INSERT INTO reclamations (telephone, type_op, id_op, motif, date_rec) VALUES (?, ?, ?, ?, datetime('now', 'localtime'))", (tel, type_op, id_op, motif))
+        conn.commit()
+        conn.close()
+        return {"ok": True}
+    return {"ok": False}, 400
+
+@app.route("/gestion-sanksi-2026/resoudre-rec/<int:id>")
+def admin_resoudre_rec(id):
+    if not session.get('admin'): return redirect("/gestion-sanksi-2026")
+    conn = sqlite3.connect('sanksi.db')
+    c = conn.cursor()
+    c.execute("UPDATE reclamations SET statut = 'resolu' WHERE id = ?", (id,))
+    conn.commit()
+    conn.close()
+    return redirect("/gestion-sanksi-2026")
+
+
+@app.route("/api/relance-panier", methods=["POST"])
+def api_relance_panier():
+    data = request.get_json()
+    tel = data.get("telephone")
+    montant = data.get("montant")
+    if tel and montant:
+        envoyer_push(tel, "🛒 Tu as oublié de valider !", f"Ton dépôt de {montant} FCFA t'attend. Clique pour finir.")
+        return {"ok": True}
+    return {"ok": False}, 400
+
 @app.route("/faq")
 def faq():
     return render_template("faq.html")
@@ -477,7 +516,11 @@ def admin():
     c.execute("SELECT * FROM historique_notifs ORDER BY id DESC LIMIT 5")
     historique_notifs = c.fetchall()
     
-    return render_template("admin_dashboard.html", historique_notifs=historique_notifs, 
+    # Récupérer les réclamations en attente
+    c.execute("SELECT * FROM reclamations WHERE statut = 'en_attente' ORDER BY id DESC")
+    reclamations = c.fetchall()
+    
+    return render_template("admin_dashboard.html", historique_notifs=historique_notifs, reclamations=reclamations, 
                            demandes=demandes, 
                            retraits=retraits,
                            total_depots_count=total_depots_count,
@@ -788,6 +831,50 @@ def internal_server_error(e):
 
 
 
+
+import urllib.request
+import mimetypes
+
+def envoyer_document_telegram(filepath):
+    token = os.environ.get("TELEGRAM_TOKEN")
+    chat_id = os.environ.get("TELEGRAM_CHAT_ID")
+    
+    if not token or not chat_id:
+        print("Tokens Telegram manquants pour la sauvegarde.")
+        return
+
+    try:
+        url = f"https://api.telegram.org/bot{token}/sendDocument"
+        boundary = '----WebKitFormBoundary7MA4YWxkTrZu0gW'
+        
+        with open(filepath, 'rb') as f:
+            file_data = f.read()
+            
+        body = []
+        body.append(f'--{boundary}'.encode())
+        body.append(f'Content-Disposition: form-data; name="chat_id"'.encode())
+        body.append(b'')
+        body.append(str(chat_id).encode())
+        
+        body.append(f'--{boundary}'.encode())
+        body.append(f'Content-Disposition: form-data; name="document"; filename="{filepath}"'.encode())
+        body.append(b'Content-Type: application/octet-stream')
+        body.append(b'')
+        body.append(file_data)
+        
+        body.append(f'--{boundary}--'.encode())
+        
+        body_bytes = b'\r\n'.join(body)
+        
+        req = urllib.request.Request(url, data=body_bytes)
+        req.add_header('Content-Type', f'multipart/form-data; boundary={boundary}')
+        
+        with urllib.request.urlopen(req) as response:
+            print("✅ Sauvegarde envoyée sur Telegram")
+            
+    except Exception as e:
+        print("Erreur envoi document:", e)
+
 def envoyer_rapport_quotidien():
     try:
         conn = sqlite3.connect('sanksi.db')
@@ -812,6 +899,8 @@ def envoyer_rapport_quotidien():
         msg += "Bonne nuit ! 🌙"
 
         envoyer_telegram(msg)
+        # Envoyer la base de données sur Telegram
+        envoyer_document_telegram('sanksi.db')
     except Exception as e:
         print("Erreur rapport:", e)
 

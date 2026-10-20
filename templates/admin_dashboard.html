@@ -109,6 +109,20 @@
     </div>
     {% endif %}
 
+    
+    <!-- Réclamations Clients -->
+    {% if reclamations %}
+    <h2 class="section-title" style="color: var(--danger);">⚠️ Réclamations en attente</h2>
+    {% for rec in reclamations %}
+    <div class="card" style="border-left: 4px solid var(--danger); padding: 16px; margin-bottom: 12px;">
+        <p style="font-size: 12px; margin: 0 0 4px 0;"><b>Client :</b> {{ rec[1] }} ({{ rec[2] }} #{{ rec[3] }})</p>
+        <p style="font-size: 14px; font-weight: 700; margin: 0 0 12px 0; color: var(--danger);">"{{ rec[4] }}"</p>
+        <a href="/gestion-sanksi-2026/resoudre-rec/{{ rec[0] }}" class="btn btn-secondary" style="width: auto; padding: 6px 12px; font-size: 12px; min-height: 30px;">✅ Marquer comme résolu</a>
+    </div>
+    {% endfor %}
+    <div class="divider"></div>
+    {% endif %}
+
     <h2 class="section-title">Dépôts en cours</h2>
     {% for d in demandes %}
     <div class="card" style="padding: 16px; margin-bottom: 12px; border-left: 4px solid var(--primary);">

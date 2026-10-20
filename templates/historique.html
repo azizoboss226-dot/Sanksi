@@ -107,6 +107,9 @@
                 {% endif %}
                 <p class="text-muted" style="font-size: 13px; margin: 4px 0;">Réf : <b style="color: var(--text);">{{ d[1] }}</b></p>
 
+                <button type="button" onclick="signaler('depot', {{ d[0] }})" style="background:none; border:none; color:var(--danger); font-size:11px; text-decoration:underline; margin-top:8px; padding:0;">❓ Signaler un problème</button>
+
+
                 {% if d[-1] %}
                 <div style="background: var(--danger-soft); border-left: 3px solid var(--danger); padding: 8px 12px; margin-top: 10px; border-radius: 4px;">
                     <p style="margin: 0; font-size: 12px; font-weight: 800; color: var(--danger);">📩 Message de l'agent :</p>
@@ -136,6 +139,7 @@
                     {% endif %}
                 </div>
                 <p class="text-muted" style="font-size: 13px; margin: 4px 0;">Code retrait : <b style="color: var(--text);">{{ r[1] }}</b></p>
+                <button type="button" onclick="signaler('retrait', {{ r[0] }})" style="background:none; border:none; color:var(--danger); font-size:11px; text-decoration:underline; margin-top:8px; padding:0;">❓ Signaler un problème</button>
 
                 {% if r[-1] %}
                 <div style="background: var(--danger-soft); border-left: 3px solid var(--danger); padding: 8px 12px; margin-top: 10px; border-radius: 4px;">
@@ -154,6 +158,22 @@
 {% endblock %}
 
 {% block scripts %}
+
+<script>
+    function signaler(type_op, id_op) {
+        const motif = prompt("Décris ton problème (ex: Je n'ai pas reçu l'argent, erreur de numéro...) :");
+        if (motif && motif.trim() !== "") {
+            fetch('/api/reclamation', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({telephone: "{{ tel }}", type_op: type_op, id_op: id_op, motif: motif})
+            }).then(r => r.json()).then(data => {
+                if (data.ok && window.showToast) showToast("✅ Réclamation envoyée à l'agent", "success");
+            });
+        }
+    }
+</script>
+
 <script>
 
     // Auto-refresh de l'historique toutes les 10 secondes (uniquement si connecté)
