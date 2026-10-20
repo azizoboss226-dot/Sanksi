@@ -508,5 +508,76 @@
             }
         });
     </script>
+<!-- rappel-notifs -->
+<style>.notif-prompt{display:none!important}</style>
+<script>
+(function () {
+    if (location.pathname.indexOf('/gestion-sanksi') === 0) return;
+    var ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    var installee = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || navigator.standalone;
+    var boite = null, dernier = null;
+
+    function etat() { return window.Notification ? Notification.permission : 'absent'; }
+    function retirer() { if (boite) { boite.remove(); boite = null; } }
+
+    function afficher() {
+        var e = etat();
+        dernier = e;
+        retirer();
+        if (e === 'granted') return;
+        if (e === 'absent' && !(ios && !installee)) return;
+
+        var titre, texte, bouton = null;
+        if (e === 'default') {
+            titre = "🔔 Active les notifications";
+            texte = "Reçois une alerte dès que ton dépôt ou ton retrait est traité, même application fermée.";
+            bouton = "Activer";
+        } else if (e === 'denied') {
+            titre = "🔕 Notifications bloquées";
+            texte = "Touche l'icône à gauche de l'adresse, puis Autorisations, puis Notifications, puis Autoriser.";
+        } else {
+            titre = "📲 Installe l'application";
+            texte = "Sur iPhone : touche Partager, puis « Sur l'écran d'accueil ». Ouvre ensuite SANKSI depuis l'icône pour activer les notifications.";
+        }
+
+        boite = document.createElement('div');
+        boite.style.cssText = "margin:12px 20px 0 20px;padding:12px 14px;border-radius:14px;color:#fff;background:linear-gradient(135deg,#7C3AED,#EC4899);box-shadow:0 4px 14px rgba(124,58,237,.35);display:flex;align-items:center;gap:10px;";
+        var corps = document.createElement('div');
+        corps.style.cssText = "flex:1;min-width:0;";
+        var t = document.createElement('div');
+        t.style.cssText = "font-weight:900;font-size:14px;";
+        t.textContent = titre;
+        var p = document.createElement('div');
+        p.style.cssText = "font-size:12px;line-height:1.35;margin-top:2px;opacity:.95;";
+        p.textContent = texte;
+        corps.appendChild(t);
+        corps.appendChild(p);
+        boite.appendChild(corps);
+
+        if (bouton) {
+            var b = document.createElement('button');
+            b.type = 'button';
+            b.textContent = bouton;
+            b.style.cssText = "background:#fff;color:#7C3AED;border:none;border-radius:10px;padding:8px 14px;font-weight:900;font-size:13px;flex-shrink:0;";
+            b.onclick = function () {
+                Notification.requestPermission().then(function (r) {
+                    afficher();
+                    if (r === 'granted' && window.showToast) showToast('✅ Notifications activées !', 'success');
+                });
+            };
+            boite.appendChild(b);
+        }
+
+        var cont = document.querySelector('.app-container');
+        var tete = cont ? cont.querySelector('.app-header') : null;
+        if (tete) tete.after(boite);
+        else if (cont) cont.prepend(boite);
+        else document.body.prepend(boite);
+    }
+
+    afficher();
+    setInterval(function () { if (etat() !== dernier) afficher(); }, 2000);
+})();
+</script>
 </body>
 </html>
