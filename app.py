@@ -838,93 +838,29 @@ def admin_preparer_retrait(id):
     if not session.get('admin'):
         return redirect("/gestion-sanksi-2026")
         
-    rue = request.form.get("rue", "")
-    ville = request.form.get("ville", "")
+    rue = request.form.get("rue", "").strip()
+    ville = request.form.get("ville", "").strip()
     
-    # On enregistre la rue et la ville dans le champ code_retrait, séparés par un |
-    infos = f"{rue}|{ville}"
-    
-    conn = sqlite3.connect('sanksi.db')
-    c = conn.cursor()
-    
-    # On récupère le téléphone du client avant de modifier
-    c.execute("SELECT telephone FROM retraits WHERE id = ?", (id,))
-    row = c.fetchone()
-    
-    c.execute("UPDATE retraits SET code_retrait = ?, statut = 'prepare' WHERE id = ?", (infos, id))
-
-    if row and row[0]:
-        c.execute("INSERT INTO notifications (telephone, message, lu, created_at) VALUES (?, ?, 0, ?)",
-                  (row[0], "📍 L'agent a préparé ton retrait ! Ouvre la page d'attente pour voir la Rue et la Ville à mettre sur 1xBet.", datetime.now().isoformat()))
-        pousser(row[0], "📍 L'agent a préparé ton retrait ! Ouvre la page d'attente pour voir la Rue et la Ville à mettre sur 1xBet.")
-    
-        
-    conn.commit()
-    conn.close()
-    
-    return redirect("/gestion-sanksi-2026")
-
-
-
-def envoyer_push(telephone, titre, message):
-    if not telephone: return
-    try:
-        # Nettoyage du numéro (on garde les 8 derniers chiffres)
-        tel_clean = re.sub(r'\D', '', str(telephone))
-        if len(tel_clean) >= 8:
-            tel_clean = tel_clean[-8:]
-
+    if rue and ville:
+        infos = f"{rue}|{ville}"
         conn = sqlite3.connect('sanksi.db')
         c = conn.cursor()
-        c.execute("SELECT endpoint, p256dh, auth, telephone FROM push_subs")
-        all_subs = c.fetchall()
+        
+        # On récupère le téléphone du client pour la notification
+        c.execute("SELECT telephone FROM retraits WHERE id = ?", (id,))
+        row = c.fetchone()
+        tel_client = row[0] if row else None
+        
+        # On met à jour le statut ET les infos (rue|ville) dans code_retrait
+        c.execute("UPDATE retraits SET statut = 'prepare', code_retrait = ? WHERE id = ?", (infos, id))
+        conn.commit()
         conn.close()
         
-        for sub in all_subs:
-            db_tel_clean = re.sub(r'\D', '', str(sub[3]))
-            if len(db_tel_clean) >= 8:
-                db_tel_clean = db_tel_clean[-8:]
-            
-            if db_tel_clean == tel_clean:
-                subscription_info = {
-                    "endpoint": sub[0],
-                    "keys": {"p256dh": sub[1], "auth": sub[2]}
-                }
-                webpush(
-                    subscription_info=subscription_info,
-                    data=json.dumps({"title": titre, "body": message}),
-                    vapid_private_key=os.environ.get("VAPID_PRIVATE_KEY"),
-                    vapid_claims={"sub": "mailto:contact@sanksi.com"}
-                )
-    except Exception as e:
-        print("Erreur push:", e)
+        # On envoie une notification Push au client
+        if tel_client:
+            envoyer_push(tel_client, "📍 Infos de retrait prêtes !", f"Rue : {rue} / Ville : {ville}. Ouvre l'app pour continuer.")
 
-def admin_action(type_op, id, action):
-    if not session.get('admin'):
-        return redirect("/gestion-sanksi-2026")
-    conn = sqlite3.connect('sanksi.db')
-    c = conn.cursor()
-    table = "demandes" if type_op == "depot" else "retraits"
-    c.execute(f"SELECT montant, telephone FROM {table} WHERE id = ?", (id,))
-    info = c.fetchone()
-    nom_op = "dépôt" if type_op == "depot" else "retrait"
-    if action == "valider":
-        c.execute(f"UPDATE {table} SET statut = 'valide' WHERE id = ?", (id,))
-        if info:
-            c.execute("INSERT INTO notifications (telephone, message, lu, created_at) VALUES (?, ?, 0, ?)",
-                      (info[1], f"✅ Ton {nom_op} de {info[0]} FCFA a été effectué.", datetime.now().isoformat()))
-            pousser(info[1], f"✅ Ton {nom_op} de {info[0]} FCFA a été effectué.")
-    elif action == "refuser":
-        c.execute(f"UPDATE {table} SET statut = 'refuse' WHERE id = ?", (id,))
-        motif = request.args.get("motif", "").strip() or "Aucun motif précisé."
-        if info:
-            c.execute("INSERT INTO notifications (telephone, message, lu, created_at) VALUES (?, ?, 0, ?)",
-                      (info[1], f"❌ Ton {nom_op} de {info[0]} FCFA a été refusé. Motif : {motif}", datetime.now().isoformat()))
-            pousser(info[1], f"❌ Ton {nom_op} de {info[0]} FCFA a été refusé. Motif : {motif}")
-    conn.commit()
-    conn.close()
     return redirect("/gestion-sanksi-2026")
-
 
 @app.route("/api/admin/live-check")
 def api_admin_live_check():
