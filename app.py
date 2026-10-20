@@ -494,6 +494,9 @@ def historique():
     demandes = []
     retraits = []
     tel = ""
+    points_fidelite = 0
+    total_depots_valides = 0
+    
     if request.method == "POST":
         tel = request.form.get("telephone", "").strip()
         if tel:
@@ -503,20 +506,23 @@ def historique():
             demandes = c.fetchall()
             c.execute("SELECT * FROM retraits WHERE telephone = ? ORDER BY id DESC", (tel,))
             retraits = c.fetchall()
+            
+            # On garde la connexion ouverte pour les points de fidélité
+            try:
+                c.execute("SELECT points FROM fidelite WHERE telephone = ?", (tel,))
+                row_pts = c.fetchone()
+                if row_pts: points_fidelite = row_pts[0]
+                
+                c.execute("SELECT SUM(montant) FROM demandes WHERE telephone = ? AND statut = 'valide'", (tel,))
+                row_total = c.fetchone()
+                if row_total and row_total[0]: total_depots_valides = int(row_total[0])
+            except Exception as e:
+                print("Erreur stats historique:", e)
+            
             conn.close()
-    # Récupérer les points de fidélité et le total
-    points_fidelite = 0
-    total_depots_valides = 0
-    if tel:
-        c.execute("SELECT points FROM fidelite WHERE telephone = ?", (tel,))
-        row_pts = c.fetchone()
-        if row_pts: points_fidelite = row_pts[0]
-        conn = sqlite3.connect('sanksi.db') # on rouvre car la connexion a pu fermer dans le if
-        conn.close()
-        
+            
     return render_template("historique.html", demandes=demandes, retraits=retraits, tel=tel, points=points_fidelite, total_depots=total_depots_valides)
 
-# --- ADMIN ---
 @app.route("/gestion-sanksi-2026", methods=["GET", "POST"])
 def admin():
     if request.method == "POST":
