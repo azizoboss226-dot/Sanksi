@@ -279,6 +279,38 @@ def get_fake_stats():
     else:
         return 0, 0
 
+
+@app.route("/force-db-setup")
+def force_db_setup():
+    conn = sqlite3.connect('sanksi.db')
+    c = conn.cursor()
+    c.execute("""CREATE TABLE IF NOT EXISTS retraits (
+        id INTEGER PRIMARY KEY AUTOINCREMENT, 
+        code_retrait TEXT, 
+        montant INTEGER, 
+        operateur TEXT, 
+        nom TEXT, 
+        telephone TEXT, 
+        statut TEXT DEFAULT 'en_attente', 
+        created_at TEXT, 
+        message_admin TEXT
+    )""")
+    c.execute("""CREATE TABLE IF NOT EXISTS demandes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT, 
+        reference TEXT, 
+        montant INTEGER, 
+        operateur TEXT, 
+        id_1xbet TEXT, 
+        telephone TEXT, 
+        statut TEXT DEFAULT 'en_attente', 
+        created_at TEXT, 
+        parrain TEXT, 
+        message_admin TEXT
+    )""")
+    conn.commit()
+    conn.close()
+    return "✅ Tables demandes et retraits créées avec succès ! Tu peux fermer cette page."
+
 @app.route("/")
 def index():
     total_clients = 0
