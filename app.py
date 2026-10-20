@@ -127,27 +127,31 @@ def cle_tel(t):
 
 def pousser(telephone, message, url="/"):
     import os
-import re, json
+    import re, json
     cle = os.environ.get("VAPID_PRIVATE_KEY")
     if not cle or not telephone:
         return
     try:
         from pywebpush import webpush
-    except Exception:
-        return
-    conn = sqlite3.connect('sanksi.db')
-    c = conn.cursor()
-    c.execute("SELECT endpoint, p256dh, auth FROM push_subs WHERE substr(replace(replace(replace(replace(telephone,' ',''),'+',''),'-',''),'.',''), -8) = ?", (cle_tel(telephone),))
-    subs = c.fetchall()
-    conn.close()
-    sujet = os.environ.get("VAPID_SUBJECT", "mailto:admin@example.com")
-    for e, p, a in subs:
-        try:
-            webpush(subscription_info={"endpoint": e, "keys": {"p256dh": p, "auth": a}},
-                    data=json.dumps({"title": "SANKSI", "body": message, "url": url}),
-                    vapid_private_key=cle, vapid_claims={"sub": sujet})
-        except Exception as err:
-            print("push erreur:", err)
+        conn = sqlite3.connect('sanksi.db')
+        c = conn.cursor()
+        c.execute("SELECT endpoint, p256dh, auth FROM push_subs WHERE telephone = ?", (telephone,))
+        subs = c.fetchall()
+        conn.close()
+        
+        for sub in subs:
+            subscription_info = {
+                "endpoint": sub[0],
+                "keys": {"p256dh": sub[1], "auth": sub[2]}
+            }
+            webpush(
+                subscription_info=subscription_info,
+                data=json.dumps({"title": "SANKSI", "body": message, "url": url}),
+                vapid_private_key=cle,
+                vapid_claims={"sub": "mailto:contact@sanksi.com"}
+            )
+    except Exception as e:
+        print("Erreur push:", e)
 
 
 def ajouter_notif(telephone, message):
