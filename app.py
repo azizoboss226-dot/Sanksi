@@ -190,32 +190,23 @@ def depot():
 @app.route("/depot/confirmer", methods=["POST"])
 def confirmer_depot():
     telephone = request.form.get("telephone")
+    if is_blacklisted(telephone):
+        return "Votre numéro a été bloqué par l'administrateur. Contactez le support.", 403
     montant_check = int(request.form.get("montant", 0))
     if montant_check < 500 or montant_check > 500000:
         return "Montant invalide (Min: 500, Max: 500 000).", 400
-    if is_blacklisted(telephone):
-        return "Votre numéro a été bloqué par l'administrateur. Contactez le support.", 403
+
     montant = request.form.get("montant")
     operateur = request.form.get("operateur")
     reference = request.form.get("reference")
     id_1xbet = request.form.get("id_1xbet")
-    telephone = request.form.get("telephone")
-    
-    # --- ANTI-SPAM DEPOT ---
-    conn_spam = sqlite3.connect('sanksi.db')
-    c_spam = conn_spam.cursor()
-    c_spam.execute("SELECT COUNT(*) FROM demandes WHERE telephone = ? AND statut = 'en_attente'", (telephone,))
-    if c_spam.fetchone()[0] >= 2:
-        conn_spam.close()
-        return render_template("erreur.html", message="Tu as déjà 2 demandes de dépôt en attente. Merci de patienter ou de contacter le support.")
-    conn_spam.close()
-    # -----------------------
-    
+    parrain = request.form.get("parrain", "")
+
     conn = sqlite3.connect('sanksi.db')
     c = conn.cursor()
-    c.execute("""INSERT INTO demandes (reference, montant, operateur, id_1xbet, telephone, parrain, created_at) 
-                 VALUES (?, ?, ?, ?, ?, ?)""", 
-              (reference, montant, operateur, id_1xbet, telephone, datetime.now().isoformat()))
+    c.execute("""INSERT INTO demandes (reference, montant, operateur, id_1xbet, telephone, parrain, created_at)
+                 VALUES (?, ?, ?, ?, ?, ?, ?)""",
+              (reference, montant, operateur, id_1xbet, telephone, parrain, datetime.now().isoformat()))
     demande_id = c.lastrowid
     conn.commit()
     conn.close()
@@ -223,7 +214,7 @@ def confirmer_depot():
     msg = f"🚨 <b>NOUVEAU DÉPÔT</b>\n\n💰 Montant : <b>{montant} FCFA</b>\n📱 Opérateur : {operateur}\n🆔 ID 1xbet : <b>{id_1xbet}</b>\n📞 Téléphone : {telephone}\n🔖 Réf : {reference}\n\n👉 <a href='https://sanksi.zevcloud.app/gestion-sanksi-2026'>Valider le dépôt (Admin)</a>"
     envoyer_telegram_boutons(msg, demande_id, "depot")
     
-    return render_template("confirmation_depot.html"
+    return render_template("confirmation_depot.html", reference=reference, montant=montant, demande_id=demande_id)
 
 # --- RETRAIT : ETAPE 1 (Question) ---
 @app.route("/retrait/debut", methods=["GET", "POST"])
