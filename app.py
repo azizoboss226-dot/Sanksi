@@ -672,26 +672,31 @@ def admin_bloquer(telephone):
 def admin_push_all():
     if not session.get('admin'): return redirect("/gestion-sanksi-2026")
     message = request.form.get("message")
+    
     if message:
-        # 1. Récupérer les abonnés
         conn = sqlite3.connect('sanksi.db')
         c = conn.cursor()
-        c.execute("SELECT telephone FROM push_subs")
-        abonnes = c.fetchall()
-        conn.close() # On ferme avant d'envoyer
+        c.execute("SELECT endpoint, p256dh, auth FROM push_subs")
+        all_subs = c.fetchall()
+        c.execute("INSERT INTO historique_notifs (message, date_envoi) VALUES (?, datetime('now', 'localtime'))", (message,))
+        conn.commit()
+        conn.close()
         
-        # 2. Envoyer les push
-        for abonne in abonnes:
-            if abonne[0]:
-                envoyer_push(abonne[0], "📣 Annonce SANKSI", message)
-        
-        # 3. Enregistrer dans l'historique
-        conn2 = sqlite3.connect('sanksi.db')
-        c2 = conn2.cursor()
-        c2.execute("INSERT INTO historique_notifs (message, date_envoi) VALUES (?, datetime('now', 'localtime'))", (message,))
-        conn2.commit()
-        conn2.close()
-            
+        for sub in all_subs:
+            try:
+                subscription_info = {
+                    "endpoint": sub[0],
+                    "keys": {"p256dh": sub[1], "auth": sub[2]}
+                }
+                webpush(
+                    subscription_info=subscription_info,
+                    data=json.dumps({"title": "📣 Annonce SANKSI", "body": message}),
+                    vapid_private_key=os.environ.get("VAPID_PRIVATE_KEY"),
+                    vapid_claims={"sub": "mailto:contact@sanksi.com"}
+                )
+            except Exception as e:
+                print(f"Erreur envoi push: {e}")
+                pass
     return redirect("/gestion-sanksi-2026")
 
 @app.route("/gestion-sanksi-2026/backup")
@@ -707,7 +712,6 @@ def admin_backup():
 def admin_relancer_inactifs():
     if not session.get('admin'): return redirect("/gestion-sanksi-2026")
     
-    # 1. Récupérer les inactifs
     conn = sqlite3.connect('sanksi.db')
     c = conn.cursor()
     c.execute("""
@@ -720,7 +724,6 @@ def admin_relancer_inactifs():
     inactifs = c.fetchall()
     conn.close()
     
-    # 2. Envoyer les notifications
     for t in inactifs:
         if t[0]:
             envoyer_push(t[0], "🎁 Tu nous manques !", "Reviens faire un dépôt aujourd'hui sur SANKSI et gagne des points bonus !")
