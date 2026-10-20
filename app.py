@@ -13,6 +13,39 @@ app = Flask(__name__)
 app.secret_key = 'sanksi_secret_key_2026'
 application = app 
 
+
+import urllib.request
+
+def envoyer_telegram_boutons(message, action_id, type_op):
+    token = os.environ.get("TELEGRAM_TOKEN")
+    chat_id = os.environ.get("TELEGRAM_CHAT_ID")
+    if not token or not chat_id: return
+
+    url = f"https://api.telegram.org/bot{token}/sendMessage"
+    
+    # Création du clavier
+    keyboard = {
+        "inline_keyboard": [
+            [
+                {"text": "✅ Créditer", "callback_data": f"valider_{type_op}_{action_id}"},
+                {"text": "❌ Refuser", "callback_data": f"refuser_{type_op}_{action_id}"}
+            ]
+        ]
+    }
+    
+    payload = {
+        "chat_id": chat_id,
+        "text": message,
+        "parse_mode": "HTML",
+        "reply_markup": keyboard
+    }
+    
+    try:
+        req = urllib.request.Request(url, data=json.dumps(payload).encode('utf-8'), headers={'Content-Type': 'application/json'})
+        urllib.request.urlopen(req)
+    except Exception as e:
+        print("Erreur Telegram Boutons:", e)
+
 def envoyer_telegram(message):
     token = os.environ.get("TELEGRAM_TOKEN")
     chat_id = os.environ.get("TELEGRAM_CHAT_ID")
@@ -188,9 +221,9 @@ def confirmer_depot():
     conn.close()
 
     msg = f"🚨 <b>NOUVEAU DÉPÔT</b>\n\n💰 Montant : <b>{montant} FCFA</b>\n📱 Opérateur : {operateur}\n🆔 ID 1xbet : <b>{id_1xbet}</b>\n📞 Téléphone : {telephone}\n🔖 Réf : {reference}\n\n👉 <a href='https://sanksi.zevcloud.app/gestion-sanksi-2026'>Valider le dépôt (Admin)</a>"
-    envoyer_telegram(msg)
-
-    return render_template("confirmation_depot.html", reference=reference, montant=montant, demande_id=demande_id)
+        envoyer_telegram_boutons(msg, demande_id, "depot")
+    
+    return render_template("confirmation_depot.html"
 
 # --- RETRAIT : ETAPE 1 (Question) ---
 @app.route("/retrait/debut", methods=["GET", "POST"])
@@ -512,6 +545,20 @@ def admin():
 
     conn.close()
     
+
+    # --- STATISTIQUES PAR OPÉRATEUR (Aujourd'hui) ---
+    c.execute("SELECT operateur, SUM(montant) FROM demandes WHERE statut = 'valide' AND date(created_at) = date('now', 'localtime') GROUP BY operateur")
+    depots_par_op = dict(c.fetchall())
+    
+    c.execute("SELECT operateur, SUM(montant) FROM retraits WHERE statut = 'valide' AND date(created_at) = date('now', 'localtime') GROUP BY operateur")
+    retraits_par_op = dict(c.fetchall())
+    
+    # On prépare les variables pour le template
+    total_jour_op = sum(depots_par_op.values())
+    stats_orange = depots_par_op.get('Orange', 0)
+    stats_moov = depots_par_op.get('Moov', 0)
+    stats_wave = depots_par_op.get('Wave', 0)
+
     # Récupérer l'historique des notifs
     c.execute("SELECT * FROM historique_notifs ORDER BY id DESC LIMIT 5")
     historique_notifs = c.fetchall()
@@ -521,7 +568,7 @@ def admin():
     reclamations = c.fetchall()
     total_reclamations = len(reclamations)
     
-    return render_template("admin_dashboard.html", historique_notifs=historique_notifs, reclamations=reclamations, total_reclamations=total_reclamations, 
+    return render_template("admin_dashboard.html", historique_notifs=historique_notifs, stats_orange=stats_orange, stats_moov=stats_moov, stats_wave=stats_wave, total_jour_op=total_jour_op, reclamations=reclamations, total_reclamations=total_reclamations, 
                            demandes=demandes, 
                            retraits=retraits,
                            total_depots_count=total_depots_count,
@@ -770,6 +817,57 @@ def api_admin_live_check():
     rec = c.fetchone()[0]
     conn.close()
     return {"d": d, "r": r, "rec": rec}
+
+
+@app.route("/telegram-webhook", methods=["POST"])
+def telegram_webhook():
+    data = request.get_json()
+    if not data or "callback_query" not in data:
+        return "OK", 200
+        
+    callback = data["callback_query"]
+    callback_id = callback["id"]
+    action_data = callback["data"] # ex: valider_depot_12
+    
+    # Répondre à Telegram pour arrêter le chargement sur le bouton
+    token = os.environ.get("TELEGRAM_TOKEN")
+    urllib.request.urlopen(f"https://api.telegram.org/bot{token}/answerCallbackQuery?callback_query_id={callback_id}")
+    
+    try:
+        action, type_op, id_op = action_data.split("_")
+        id_op = int(id_op)
+        
+        conn = sqlite3.connect('sanksi.db')
+        c = conn.cursor()
+        
+        if type_op == "depot":
+            if action == "valider":
+                c.execute("UPDATE demandes SET statut = 'valide' WHERE id = ?", (id_op,))
+                c.execute("SELECT telephone, montant FROM demandes WHERE id = ?", (id_op,))
+                row = c.fetchone()
+                if row:
+                    envoyer_push(row[0], "✅ Dépôt validé !", f"Ton compte a été crédité de {row[1]} FCFA.")
+            elif action == "refuser":
+                c.execute("UPDATE demandes SET statut = 'refuse' WHERE id = ?", (id_op,))
+                c.execute("SELECT telephone FROM demandes WHERE id = ?", (id_op,))
+                row = c.fetchone()
+                if row:
+                    envoyer_push(row[0], "❌ Dépôt refusé", "Contacte le support pour plus d'infos.")
+        
+        conn.commit()
+        conn.close()
+        
+        # Modifier le message Telegram pour montrer que c'est fait
+        original_text = callback["message"]["text"]
+        nouveau_texte = original_text + f"\n\n✅ <b>Traité ({action})</b>"
+        edit_url = f"https://api.telegram.org/bot{token}/editMessageText"
+        edit_payload = {"chat_id": callback["message"]["chat"]["id"], "message_id": callback["message"]["message_id"], "text": nouveau_texte, "parse_mode": "HTML"}
+        urllib.request.urlopen(urllib.request.Request(edit_url, data=json.dumps(edit_payload).encode('utf-8'), headers={'Content-Type': 'application/json'}))
+        
+    except Exception as e:
+        print("Erreur Webhook:", e)
+        
+    return "OK", 200
 
 @app.route("/api/notifications")
 def api_notifications():
