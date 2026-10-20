@@ -112,7 +112,12 @@
     
     <!-- Réclamations Clients -->
     {% if reclamations %}
-    <h2 class="section-title" style="color: var(--danger);">⚠️ Réclamations en attente</h2>
+    
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <h2 class="section-title" style="color: var(--danger); margin: 0;">⚠️ Réclamations clients</h2>
+        <span class="badge badge-danger" style="font-size: 12px; padding: 4px 10px; animation: pulse 2s infinite;">{{ total_reclamations }} en attente</span>
+    </div>
+
     {% for rec in reclamations %}
     <div class="card" style="border-left: 4px solid var(--danger); padding: 16px; margin-bottom: 12px;">
         <p style="font-size: 12px; margin: 0 0 4px 0;"><b>Client :</b> {{ rec[1] }} ({{ rec[2] }} #{{ rec[3] }})</p>

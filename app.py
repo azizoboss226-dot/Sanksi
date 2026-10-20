@@ -519,8 +519,9 @@ def admin():
     # Récupérer les réclamations en attente
     c.execute("SELECT * FROM reclamations WHERE statut = 'en_attente' ORDER BY id DESC")
     reclamations = c.fetchall()
+    total_reclamations = len(reclamations)
     
-    return render_template("admin_dashboard.html", historique_notifs=historique_notifs, reclamations=reclamations, 
+    return render_template("admin_dashboard.html", historique_notifs=historique_notifs, reclamations=reclamations, total_reclamations=total_reclamations, 
                            demandes=demandes, 
                            retraits=retraits,
                            total_depots_count=total_depots_count,
@@ -765,8 +766,10 @@ def api_admin_live_check():
     d = c.fetchone()[0]
     c.execute("SELECT COUNT(*) FROM retraits WHERE statut IN ('en_attente', 'preparation', 'prepare')")
     r = c.fetchone()[0]
+    c.execute("SELECT COUNT(*) FROM reclamations WHERE statut = 'en_attente'")
+    rec = c.fetchone()[0]
     conn.close()
-    return {"d": d, "r": r}
+    return {"d": d, "r": r, "rec": rec}
 
 @app.route("/api/notifications")
 def api_notifications():
