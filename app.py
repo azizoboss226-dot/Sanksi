@@ -77,7 +77,7 @@ def init_db():
     c.execute('''CREATE TABLE IF NOT EXISTS avis (
         id INTEGER PRIMARY KEY AUTOINCREMENT, telephone TEXT, note INTEGER,
         commentaire TEXT, date_avis TEXT)''')
-    for table, colonne in (("demandes", "message_admin TEXT"), ("retraits", "message_admin TEXT")):
+    for table, colonne in (("demandes", "message_admin TEXT"), ("retraits", "message_admin TEXT"), ("demandes", "parrain TEXT")):
         try:
             c.execute("ALTER TABLE " + table + " ADD COLUMN " + colonne)
         except Exception:
