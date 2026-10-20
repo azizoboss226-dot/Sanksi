@@ -908,12 +908,16 @@ def push_abonner():
     tel = (d.get("telephone") or "").strip()
     sub = d.get("subscription") or {}
     keys = sub.get("keys") or {}
-    if not tel or not sub.get("endpoint") or not keys.get("p256dh") or not keys.get("auth"):
+    if not sub.get("endpoint") or not keys.get("p256dh") or not keys.get("auth"):
         return jsonify({"ok": False}), 400
     conn = sqlite3.connect('sanksi.db')
     c = conn.cursor()
-    c.execute("INSERT OR REPLACE INTO push_subs (telephone, endpoint, p256dh, auth) VALUES (?, ?, ?, ?)",
-              (tel, sub["endpoint"], keys["p256dh"], keys["auth"]))
+    if tel:
+        c.execute("INSERT OR REPLACE INTO push_subs (telephone, endpoint, p256dh, auth) VALUES (?, ?, ?, ?)",
+                  (tel, sub["endpoint"], keys["p256dh"], keys["auth"]))
+    else:
+        c.execute("INSERT OR IGNORE INTO push_subs (telephone, endpoint, p256dh, auth) VALUES (?, ?, ?, ?)",
+                  ("", sub["endpoint"], keys["p256dh"], keys["auth"]))
     conn.commit()
     conn.close()
     return jsonify({"ok": True})
