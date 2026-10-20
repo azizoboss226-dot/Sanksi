@@ -656,25 +656,29 @@ def admin_bloquer(telephone):
 
 @app.route("/gestion-sanksi-2026/push-all", methods=["POST"])
 def admin_push_all():
-        conn.close()
     if not session.get('admin'): return redirect("/gestion-sanksi-2026")
     message = request.form.get("message")
     if message:
+        # 1. Récupérer les abonnés
         conn = sqlite3.connect('sanksi.db')
         c = conn.cursor()
         c.execute("SELECT telephone FROM push_subs")
         abonnes = c.fetchall()
-        conn.close()
+        conn.close() # On ferme avant d'envoyer
         
+        # 2. Envoyer les push
         for abonne in abonnes:
-            envoyer_push(abonne[0], "📣 Annonce SANKSI", message)
+            if abonne[0]:
+                envoyer_push(abonne[0], "📣 Annonce SANKSI", message)
         
-        # Sauvegarder dans l'historique
-        c.execute("INSERT INTO historique_notifs (message, date_envoi) VALUES (?, datetime('now', 'localtime'))", (message,))
-        conn.commit()
+        # 3. Enregistrer dans l'historique
+        conn2 = sqlite3.connect('sanksi.db')
+        c2 = conn2.cursor()
+        c2.execute("INSERT INTO historique_notifs (message, date_envoi) VALUES (?, datetime('now', 'localtime'))", (message,))
+        conn2.commit()
+        conn2.close()
             
     return redirect("/gestion-sanksi-2026")
-
 
 @app.route("/gestion-sanksi-2026/backup")
 def admin_backup():
@@ -688,10 +692,10 @@ def admin_backup():
 @app.route("/gestion-sanksi-2026/relancer-inactifs")
 def admin_relancer_inactifs():
     if not session.get('admin'): return redirect("/gestion-sanksi-2026")
+    
+    # 1. Récupérer les inactifs
     conn = sqlite3.connect('sanksi.db')
     c = conn.cursor()
-    
-    # Trouver les clients qui ont un abonnement Push mais AUCUN dépôt dans les 7 derniers jours
     c.execute("""
         SELECT DISTINCT ps.telephone FROM push_subs ps
         WHERE ps.telephone NOT IN (
@@ -701,12 +705,11 @@ def admin_relancer_inactifs():
     """)
     inactifs = c.fetchall()
     conn.close()
-
-    count = 0
+    
+    # 2. Envoyer les notifications
     for t in inactifs:
         if t[0]:
             envoyer_push(t[0], "🎁 Tu nous manques !", "Reviens faire un dépôt aujourd'hui sur SANKSI et gagne des points bonus !")
-            count += 1
 
     return redirect("/gestion-sanksi-2026")
 
