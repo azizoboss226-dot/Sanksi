@@ -61,6 +61,19 @@ def init_db():
         nom TEXT, telephone TEXT, statut TEXT DEFAULT 'en_attente', created_at TEXT, message_admin TEXT
     )""")
     
+    
+    # --- VERIFICATION DES COLONNES MANQUANTES ---
+    try:
+        c.execute("ALTER TABLE demandes ADD COLUMN message_admin TEXT")
+    except sqlite3.OperationalError: pass # Existe déjà
+    try:
+        c.execute("ALTER TABLE demandes ADD COLUMN parrain TEXT")
+    except sqlite3.OperationalError: pass
+    try:
+        c.execute("ALTER TABLE retraits ADD COLUMN message_admin TEXT")
+    except sqlite3.OperationalError: pass
+    # ---------------------------------------------
+
     conn.commit()
     conn.close()
 
@@ -353,24 +366,32 @@ def api_depot(id):
 def api_retrait(id):
     conn = sqlite3.connect('sanksi.db')
     c = conn.cursor()
-    c.execute("SELECT statut, code_retrait, message_admin FROM retraits WHERE id = ?", (id,))
+    try:
+        c.execute("SELECT statut, code_retrait, message_admin FROM retraits WHERE id = ?", (id,))
+    except sqlite3.OperationalError:
+        # Si la colonne message_admin n'existe pas, on sélectionne sans elle
+        c.execute("SELECT statut, code_retrait FROM retraits WHERE id = ?", (id,))
+        
     row = c.fetchone()
     conn.close()
+    
     if not row:
         return {"statut": "introuvable"}
-    
+        
     statut = row[0]
+    code_retrait = row[1] or ""
+    message = row[2] if len(row) > 2 else ""
+    
     info_rue = ""
     info_ville = ""
     
-    # Si l'admin a mis les infos dans le champ code_retrait, on les renvoie
-    if statut == 'prepare':
-        infos = row[1].split('|') # On sépare rue et ville par un |
+    # On accepte 'prepare' et 'preparation' pour être sûr
+    if statut in ('prepare', 'preparation') and '|' in code_retrait:
+        infos = code_retrait.split('|')
         info_rue = infos[0]
-        info_ville = infos[1]
+        info_ville = infos[1] if len(infos) > 1 else ""
         
-    return {"statut": statut, "rue": info_rue, "ville": info_ville, "message": row[2] or ""}
-
+    return {"statut": statut, "rue": info_rue, "ville": info_ville, "message": message}
 
 @app.route("/retrait/confirmer", methods=["POST"])
 def confirmer_retrait():
