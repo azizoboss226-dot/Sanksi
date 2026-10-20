@@ -221,7 +221,7 @@ def confirmer_depot():
     conn.close()
 
     msg = f"🚨 <b>NOUVEAU DÉPÔT</b>\n\n💰 Montant : <b>{montant} FCFA</b>\n📱 Opérateur : {operateur}\n🆔 ID 1xbet : <b>{id_1xbet}</b>\n📞 Téléphone : {telephone}\n🔖 Réf : {reference}\n\n👉 <a href='https://sanksi.zevcloud.app/gestion-sanksi-2026'>Valider le dépôt (Admin)</a>"
-        envoyer_telegram_boutons(msg, demande_id, "depot")
+    envoyer_telegram_boutons(msg, demande_id, "depot")
     
     return render_template("confirmation_depot.html"
 
