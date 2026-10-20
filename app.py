@@ -185,7 +185,7 @@ def cle_tel(t):
     return d[-8:]
 
 
-def pousser(telephone, message, url="/"):
+def envoyer_push(telephone, titre, message):
     import os
     import re, json
     cle = os.environ.get("VAPID_PRIVATE_KEY")
@@ -206,7 +206,7 @@ def pousser(telephone, message, url="/"):
             }
             webpush(
                 subscription_info=subscription_info,
-                data=json.dumps({"title": "SANKSI", "body": message, "url": url}),
+                data=json.dumps({"title": titre, "body": message}),
                 vapid_private_key=cle,
                 vapid_claims={"sub": "mailto:contact@sanksi.com"}
             )
