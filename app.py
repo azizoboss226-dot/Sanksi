@@ -952,9 +952,7 @@ def api_notifications():
 @app.route("/api/push/cle")
 def push_cle():
     import os
-import re
     return os.environ.get("VAPID_PUBLIC_KEY", "")
-
 
 @app.route("/api/push/abonner", methods=["POST"])
 def push_abonner():
