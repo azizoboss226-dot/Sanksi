@@ -1,9 +1,20 @@
-templates.bak/
+# Python
 __pycache__/
-*.pyc
-.env
-.venv/
+*.py[cod]
+*$py.class
 venv/
-sanksi.db
-static/logo-source.png
+env/
+
+# Backups et fichiers temporaires
+*.bak
 *.bak*
+templates.bak/
+
+# Base de données locale (on la télécharge via l'admin, pas besoin de la mettre sur GitHub)
+sanksi.db
+sanksi.db-journal
+
+# Fichiers de config locaux
+.env
+config.json
+blacklist.json
