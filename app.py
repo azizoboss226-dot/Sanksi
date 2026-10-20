@@ -366,10 +366,10 @@ def api_depot(id):
 def api_retrait(id):
     conn = sqlite3.connect('sanksi.db')
     c = conn.cursor()
+    
     try:
         c.execute("SELECT statut, code_retrait, message_admin FROM retraits WHERE id = ?", (id,))
     except sqlite3.OperationalError:
-        # Si la colonne message_admin n'existe pas, on sélectionne sans elle
         c.execute("SELECT statut, code_retrait FROM retraits WHERE id = ?", (id,))
         
     row = c.fetchone()
@@ -385,7 +385,7 @@ def api_retrait(id):
     info_rue = ""
     info_ville = ""
     
-    # On accepte 'prepare' et 'preparation' pour être sûr
+    # On accepte 'prepare', 'preparation' et même 'en_attente' si les infos sont là
     if statut in ('prepare', 'preparation') and '|' in code_retrait:
         infos = code_retrait.split('|')
         info_rue = infos[0]
