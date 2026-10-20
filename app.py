@@ -656,6 +656,7 @@ def admin_bloquer(telephone):
 
 @app.route("/gestion-sanksi-2026/push-all", methods=["POST"])
 def admin_push_all():
+        conn.close()
     if not session.get('admin'): return redirect("/gestion-sanksi-2026")
     message = request.form.get("message")
     if message:
