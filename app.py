@@ -77,6 +77,24 @@ def init_db():
     c.execute('''CREATE TABLE IF NOT EXISTS avis (
         id INTEGER PRIMARY KEY AUTOINCREMENT, telephone TEXT, note INTEGER,
         commentaire TEXT, date_avis TEXT)''')
+    c.execute('''CREATE TABLE IF NOT EXISTS reclamations (
+        id INTEGER PRIMARY KEY AUTOINCREMENT, telephone TEXT, type_op TEXT, id_op INTEGER,
+        motif TEXT, statut TEXT DEFAULT 'en_attente', date_rec TEXT)''')
+    c.execute('''CREATE TABLE IF NOT EXISTS fidelite (
+        telephone TEXT PRIMARY KEY, points INTEGER DEFAULT 0)''')
+    c.execute('''CREATE TABLE IF NOT EXISTS login_attempts (
+        ip TEXT PRIMARY KEY, attempts INTEGER DEFAULT 0, blocked_until)''')
+    c.execute('''CREATE TABLE IF NOT EXISTS historique_notifs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT, message TEXT, date_envoi TEXT)''')
+    c.execute('''CREATE TABLE IF NOT EXISTS reclamations (
+        id INTEGER PRIMARY KEY AUTOINCREMENT, telephone TEXT, type_op TEXT, id_op INTEGER,
+        motif TEXT, statut TEXT DEFAULT 'en_attente', date_rec TEXT)''')
+    c.execute('''CREATE TABLE IF NOT EXISTS fidelite (
+        telephone TEXT PRIMARY KEY, points INTEGER DEFAULT 0)''')
+    c.execute('''CREATE TABLE IF NOT EXISTS login_attempts (
+        ip TEXT PRIMARY KEY, attempts INTEGER DEFAULT 0, blocked_until)''')
+    c.execute('''CREATE TABLE IF NOT EXISTS historique_notifs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT, message TEXT, date_envoi TEXT)''')
     for table, colonne in (("demandes", "message_admin TEXT"), ("retraits", "message_admin TEXT"), ("demandes", "parrain TEXT")):
         try:
             c.execute("ALTER TABLE " + table + " ADD COLUMN " + colonne)
