@@ -10,10 +10,41 @@ import urllib.request
 import urllib.parse
 
 
+
+
+
 def init_db():
     conn = sqlite3.connect('sanksi.db')
     c = conn.cursor()
-    # Création de toutes les tables si elles n'existent pas
+    
+    # 1. Table principale des dépôts
+    c.execute("""CREATE TABLE IF NOT EXISTS demandes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT, 
+        reference TEXT, 
+        montant TEXT, 
+        operateur TEXT, 
+        id_1xbet TEXT, 
+        telephone TEXT, 
+        statut TEXT DEFAULT 'en_attente', 
+        created_at TEXT,
+        parrain TEXT,
+        message_admin TEXT
+    )""")
+    
+    # 2. Table principale des retraits
+    c.execute("""CREATE TABLE IF NOT EXISTS retraits (
+        id INTEGER PRIMARY KEY AUTOINCREMENT, 
+        code_retrait TEXT, 
+        montant TEXT, 
+        operateur TEXT, 
+        nom TEXT, 
+        telephone TEXT, 
+        statut TEXT DEFAULT 'en_attente', 
+        created_at TEXT,
+        message_admin TEXT
+    )""")
+
+    # 3. Les autres tables
     c.execute("""CREATE TABLE IF NOT EXISTS push_subs (
         id INTEGER PRIMARY KEY AUTOINCREMENT, 
         telephone TEXT, 
@@ -44,11 +75,13 @@ def init_db():
         telephone TEXT PRIMARY KEY, 
         points INTEGER DEFAULT 0
     )""")
+    
     conn.commit()
     conn.close()
 
 
 app = Flask(__name__)
+init_db()
 init_db()
 app.secret_key = 'sanksi_secret_key_2026'
 application = app 
