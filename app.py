@@ -582,11 +582,15 @@ def admin():
     
 
     # --- STATISTIQUES PAR OPÉRATEUR (Aujourd'hui) ---
-    c.execute("SELECT operateur, SUM(montant) FROM demandes WHERE statut = 'valide' AND date(created_at) = date('now', 'localtime') GROUP BY operateur")
-    depots_par_op = dict(c.fetchall())
+    conn_op = sqlite3.connect('sanksi.db')
+    c_op = conn_op.cursor()
     
-    c.execute("SELECT operateur, SUM(montant) FROM retraits WHERE statut = 'valide' AND date(created_at) = date('now', 'localtime') GROUP BY operateur")
-    retraits_par_op = dict(c.fetchall())
+    c_op.execute("SELECT operateur, SUM(montant) FROM demandes WHERE statut = 'valide' AND date(created_at) = date('now', 'localtime') GROUP BY operateur")
+    depots_par_op = dict(c_op.fetchall())
+    
+    c_op.execute("SELECT operateur, SUM(montant) FROM retraits WHERE statut = 'valide' AND date(created_at) = date('now', 'localtime') GROUP BY operateur")
+    retraits_par_op = dict(c_op.fetchall())
+    conn_op.close()
     
     # On prépare les variables pour le template
     total_jour_op = sum(depots_par_op.values())
