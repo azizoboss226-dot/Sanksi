@@ -768,3 +768,30 @@ button { font-family: inherit; cursor: pointer; border: none; }
     background: var(--bg-deep);
     color: var(--text);
 }
+
+/* ===== Corrections : bannière d'installation + mode sombre ===== */
+#pwa-banner {
+    bottom: 80px;
+    transform: translateX(-50%) translateY(300%);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s, visibility 0s 0.4s;
+}
+#pwa-banner.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s, visibility 0s;
+}
+
+[data-theme="dark"] .bm-card,
+[data-theme="dark"] .btn-secondary,
+[data-theme="dark"] .toast,
+[data-theme="dark"] #pwa-banner {
+    background: var(--bg-elevated);
+    color: var(--text);
+}
+[data-theme="dark"] .bm-name { color: var(--text); }
+[data-theme="dark"] .btn-secondary { border-color: var(--border-strong); }
