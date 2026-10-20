@@ -578,7 +578,7 @@ def admin():
     c.execute("SELECT COUNT(*) FROM retraits WHERE statut IN ('en_attente', 'preparation', 'prepare')")
     attente_retraits = c.fetchone()[0] or 0
 
-    conn.close()
+    # conn.close()  <-- Déplacé à la fin
     
 
     # --- STATISTIQUES PAR OPÉRATEUR (Aujourd'hui) ---
@@ -607,6 +607,7 @@ def admin():
     reclamations = c.fetchall()
     total_reclamations = len(reclamations)
     
+    conn.close()
     return render_template("admin_dashboard.html", historique_notifs=historique_notifs, stats_orange=stats_orange, stats_moov=stats_moov, stats_wave=stats_wave, total_jour_op=total_jour_op, reclamations=reclamations, total_reclamations=total_reclamations, 
                            demandes=demandes, 
                            retraits=retraits,
