@@ -74,6 +74,14 @@ def init_db():
     c.execute('''CREATE TABLE IF NOT EXISTS push_subs (
         id INTEGER PRIMARY KEY AUTOINCREMENT, telephone TEXT,
         endpoint TEXT UNIQUE, p256dh TEXT, auth TEXT)''')
+    c.execute('''CREATE TABLE IF NOT EXISTS avis (
+        id INTEGER PRIMARY KEY AUTOINCREMENT, telephone TEXT, note INTEGER,
+        commentaire TEXT, date_avis TEXT)''')
+    for table, colonne in (("demandes", "message_admin TEXT"), ("retraits", "message_admin TEXT")):
+        try:
+            c.execute("ALTER TABLE " + table + " ADD COLUMN " + colonne)
+        except Exception:
+            pass
     conn.commit()
     conn.close()
 
