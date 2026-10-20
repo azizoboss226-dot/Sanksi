@@ -6,6 +6,7 @@ import random
 import string
 from datetime import datetime
 import os
+import re
 import urllib.request
 import urllib.parse
 
@@ -125,7 +126,8 @@ def cle_tel(t):
 
 
 def pousser(telephone, message, url="/"):
-    import os, json
+    import os
+import re, json
     cle = os.environ.get("VAPID_PRIVATE_KEY")
     if not cle or not telephone:
         return
@@ -676,17 +678,12 @@ def admin_push_all():
     if message:
         conn = sqlite3.connect('sanksi.db')
         c = conn.cursor()
-        
-        # 1. On récupère la liste des numéros de téléphone abonnés
         c.execute("SELECT DISTINCT telephone FROM push_subs WHERE telephone IS NOT NULL AND telephone != ''")
         telephones = c.fetchall()
-        
-        # 2. On enregistre dans l'historique
         c.execute("INSERT INTO historique_notifs (message, date_envoi) VALUES (?, datetime('now', 'localtime'))", (message,))
         conn.commit()
         conn.close()
         
-        # 3. On boucle sur les numéros et on utilise "envoyer_push" (LA FONCTION QUI MARCHE)
         for t in telephones:
             if t[0]:
                 envoyer_push(t[0], "📣 Annonce SANKSI", message)
@@ -698,6 +695,7 @@ def admin_backup():
     if not session.get('admin'): return redirect("/gestion-sanksi-2026")
     from flask import send_file
     import os
+import re
     db_path = os.path.join(os.getcwd(), 'sanksi.db')
     return send_file(db_path, as_attachment=True, download_name="sanksi_backup.db")
 
@@ -806,37 +804,36 @@ def admin_preparer_retrait(id):
 def envoyer_push(telephone, titre, message):
     if not telephone: return
     try:
+        # Nettoyage du numéro (on garde les 8 derniers chiffres)
+        tel_clean = re.sub(r'\D', '', str(telephone))
+        if len(tel_clean) >= 8:
+            tel_clean = tel_clean[-8:]
+
         conn = sqlite3.connect('sanksi.db')
         c = conn.cursor()
-        c.execute("SELECT endpoint, p256dh, auth FROM push_subs WHERE telephone = ?", (telephone,))
-        subs = c.fetchall()
+        c.execute("SELECT endpoint, p256dh, auth, telephone FROM push_subs")
+        all_subs = c.fetchall()
         conn.close()
         
-        for sub in subs:
-            subscription_info = {
-                "endpoint": sub[0],
-                "keys": {"p256dh": sub[1], "auth": sub[2]}
-            }
-            try:
+        for sub in all_subs:
+            db_tel_clean = re.sub(r'\D', '', str(sub[3]))
+            if len(db_tel_clean) >= 8:
+                db_tel_clean = db_tel_clean[-8:]
+            
+            if db_tel_clean == tel_clean:
+                subscription_info = {
+                    "endpoint": sub[0],
+                    "keys": {"p256dh": sub[1], "auth": sub[2]}
+                }
                 webpush(
                     subscription_info=subscription_info,
                     data=json.dumps({"title": titre, "body": message}),
                     vapid_private_key=os.environ.get("VAPID_PRIVATE_KEY"),
                     vapid_claims={"sub": "mailto:contact@sanksi.com"}
                 )
-            except WebPushException as ex:
-                print("Erreur push:", ex)
-                # Si l'abonnement est mort/expiré, on le supprime
-                if ex.response and ex.response.status_code in [404, 410]:
-                    conn = sqlite3.connect('sanksi.db')
-                    c = conn.cursor()
-                    c.execute("DELETE FROM push_subs WHERE endpoint = ?", (sub[0],))
-                    conn.commit()
-                    conn.close()
     except Exception as e:
-        print("Erreur globale push:", e)
+        print("Erreur push:", e)
 
-@app.route("/gestion-sanksi-2026/action/<type_op>/<int:id>/<action>")
 def admin_action(type_op, id, action):
     if not session.get('admin'):
         return redirect("/gestion-sanksi-2026")
@@ -949,6 +946,7 @@ def api_notifications():
 @app.route("/api/push/cle")
 def push_cle():
     import os
+import re
     return os.environ.get("VAPID_PUBLIC_KEY", "")
 
 
