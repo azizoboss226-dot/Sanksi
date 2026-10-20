@@ -175,7 +175,25 @@ def get_fake_stats():
 
 @app.route("/")
 def index():
-    return render_template("index.html")
+    total_clients = 0
+    total_echanges = 0
+    try:
+        conn = sqlite3.connect('sanksi.db')
+        c = conn.cursor()
+        c.execute("""SELECT COUNT(DISTINCT t) FROM (
+                        SELECT telephone AS t FROM demandes WHERE telephone IS NOT NULL AND telephone != ''
+                        UNION
+                        SELECT telephone AS t FROM retraits WHERE telephone IS NOT NULL AND telephone != '')""")
+        total_clients = c.fetchone()[0] or 0
+        c.execute("SELECT COALESCE(SUM(CAST(montant AS INTEGER)), 0) FROM demandes WHERE statut = 'valide'")
+        a = c.fetchone()[0] or 0
+        c.execute("SELECT COALESCE(SUM(CAST(montant AS INTEGER)), 0) FROM retraits WHERE statut = 'valide'")
+        b = c.fetchone()[0] or 0
+        total_echanges = a + b
+        conn.close()
+    except Exception as e:
+        print("stats accueil erreur:", e)
+    return render_template("index.html", total_clients=total_clients, total_echanges=total_echanges)
 
 # --- DEPOT ---
 @app.route("/depot")
