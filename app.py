@@ -699,10 +699,8 @@ def admin_backup():
     if not session.get('admin'): return redirect("/gestion-sanksi-2026")
     from flask import send_file
     import os
-import re
     db_path = os.path.join(os.getcwd(), 'sanksi.db')
     return send_file(db_path, as_attachment=True, download_name="sanksi_backup.db")
-
 
 @app.route("/gestion-sanksi-2026/relancer-inactifs")
 def admin_relancer_inactifs():
