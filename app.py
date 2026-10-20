@@ -903,13 +903,17 @@ def telegram_webhook():
                 c.execute("SELECT telephone, montant FROM demandes WHERE id = ?", (id_op,))
                 row = c.fetchone()
                 if row:
-                    envoyer_push(row[0], "✅ Dépôt validé !", f"Ton compte a été crédité de {row[1]} FCFA.")
+                    msg_notif = f"✅ Ton dépôt de {row[1]} FCFA a été effectué."
+                    c.execute("INSERT INTO notifications (telephone, message, lu, created_at) VALUES (?, ?, 0, ?)", (row[0], msg_notif, datetime.now().isoformat()))
+                    pousser(row[0], msg_notif)
             elif action == "refuser":
                 c.execute("UPDATE demandes SET statut = 'refuse' WHERE id = ?", (id_op,))
-                c.execute("SELECT telephone FROM demandes WHERE id = ?", (id_op,))
+                c.execute("SELECT telephone, montant FROM demandes WHERE id = ?", (id_op,))
                 row = c.fetchone()
                 if row:
-                    envoyer_push(row[0], "❌ Dépôt refusé", "Contacte le support pour plus d'infos.")
+                    msg_notif = f"❌ Ton dépôt de {row[1]} FCFA a été refusé. Contacte le support pour en savoir plus."
+                    c.execute("INSERT INTO notifications (telephone, message, lu, created_at) VALUES (?, ?, 0, ?)", (row[0], msg_notif, datetime.now().isoformat()))
+                    pousser(row[0], msg_notif)
         
         conn.commit()
         conn.close()
