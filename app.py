@@ -79,6 +79,53 @@ def init_db():
 
 
 app = Flask(__name__)
+
+def verifier_tables():
+    conn = sqlite3.connect('sanksi.db')
+    c = conn.cursor()
+    
+    # Table retraits
+    c.execute("""CREATE TABLE IF NOT EXISTS retraits (
+        id INTEGER PRIMARY KEY AUTOINCREMENT, 
+        code_retrait TEXT, 
+        montant INTEGER, 
+        operateur TEXT, 
+        nom TEXT, 
+        telephone TEXT, 
+        statut TEXT DEFAULT 'en_attente', 
+        created_at TEXT, 
+        message_admin TEXT
+    )""")
+    
+    # Table demandes
+    c.execute("""CREATE TABLE IF NOT EXISTS demandes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT, 
+        reference TEXT, 
+        montant INTEGER, 
+        operateur TEXT, 
+        id_1xbet TEXT, 
+        telephone TEXT, 
+        statut TEXT DEFAULT 'en_attente', 
+        created_at TEXT, 
+        parrain TEXT, 
+        message_admin TEXT
+    )""")
+    
+    # Autres tables
+    c.execute("""CREATE TABLE IF NOT EXISTS push_subs (id INTEGER PRIMARY KEY AUTOINCREMENT, telephone TEXT, endpoint TEXT UNIQUE, p256dh TEXT, auth TEXT)""")
+    c.execute("""CREATE TABLE IF NOT EXISTS historique_notifs (id INTEGER PRIMARY KEY AUTOINCREMENT, message TEXT, date_envoi TEXT)""")
+    c.execute("""CREATE TABLE IF NOT EXISTS reclamations (id INTEGER PRIMARY KEY AUTOINCREMENT, telephone TEXT, type_op TEXT, id_op INTEGER, motif TEXT, statut TEXT DEFAULT 'en_attente', date_rec TEXT)""")
+    c.execute("""CREATE TABLE IF NOT EXISTS fidelite (telephone TEXT PRIMARY KEY, points INTEGER DEFAULT 0)""")
+    c.execute("""CREATE TABLE IF NOT EXISTS login_attempts (ip TEXT PRIMARY KEY, attempts INTEGER, blocked_until TEXT)""")
+    c.execute("""CREATE TABLE IF NOT EXISTS avis (id INTEGER PRIMARY KEY AUTOINCREMENT, telephone TEXT, note INTEGER, commentaire TEXT, date_avis TEXT)""")
+    
+    conn.commit()
+    conn.close()
+
+# On l'exécute immédiatement au démarrage
+verifier_tables()
+
+
 init_db()
 init_db()
 init_db()
