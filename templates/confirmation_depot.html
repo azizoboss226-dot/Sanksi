@@ -1,5 +1,41 @@
 {% extends "base.html" %}
-{% block title %}SANKSI - Demande envoyée{% endblock %}
+{% block title %}SANKSI - Demande envoyée
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const demandeId = "{{ demande_id }}";
+        if (!demandeId) return;
+        
+        const intervalId = setInterval(function() {
+            fetch(`/api/depot/${demandeId}`)
+                .then(r => r.json())
+                .then(data => {
+                    if (data.statut === 'valide') {
+                        clearInterval(intervalId);
+                        // On cache la carte d'attente
+                        const card = document.querySelector('.card.text-center');
+                        if (card) card.style.display = 'none';
+                        
+                        // On affiche le message de succès
+                        const successHtml = `
+                            <div class="card text-center" style="background: var(--success-soft); border: 2px solid var(--success); animation: fadeIn 0.4s ease;">
+                                <div style="font-size: 60px; margin-bottom: 12px;">✅</div>
+                                <h2 style="color: #047857; font-weight: 900; font-size: 20px; margin: 0 0 8px 0;">Dépôt effectué !</h2>
+                                <p style="color: var(--text); font-size: 14px; margin: 0 0 16px 0;">Ton compte 1xBet a bien été crédité.</p>
+                                <a href="/historique" class="btn btn-primary">Voir mon historique</a>
+                            </div>
+                        `;
+                        const container = document.querySelector('.page.fade-in');
+                        if (container) container.insertAdjacentHTML('afterbegin', successHtml);
+                        
+                        // Confettis !
+                        if (typeof fireConfetti === 'function') fireConfetti();
+                    }
+                }).catch(e => {});
+        }, 3000);
+    });
+</script>
+
+{% endblock %}
 
 {% block content %}
 <div class="page fade-in" style="justify-content:center;">
@@ -50,31 +86,44 @@
         <a href="/" class="btn btn-secondary">Retour à l'accueil</a>
     </div>
 </div>
-{% endblock %}
 
-
-
-{% block scripts %}
 <script>
-    const demandeId = "{{ demande_id }}";
-    
-    function verifierStatutDepot() {
+    document.addEventListener('DOMContentLoaded', function() {
+        const demandeId = "{{ demande_id }}";
         if (!demandeId) return;
-        fetch(`/api/depot/${demandeId}`)
-            .then(r => r.json())
-            .then(data => {
-                if (data.statut === 'valide') {
-                    // On cache la carte d'attente et on montre le succès
-                    document.querySelector('.card.text-center').style.display = 'none';
-                    document.getElementById('zone-succes').style.display = 'block';
-                    clearInterval(intervalId);
-                    
-                    // On fait tomber les confettis !
-                    if (typeof fireConfetti === 'function') fireConfetti();
-                }
-            }).catch(e => console.log("En attente de validation..."));
-    }
-    
-    const intervalId = setInterval(verifierStatutDepot, 3000);
+        
+        const intervalId = setInterval(function() {
+            fetch(`/api/depot/${demandeId}`)
+                .then(r => r.json())
+                .then(data => {
+                    if (data.statut === 'valide') {
+                        clearInterval(intervalId);
+                        // On cache la carte d'attente
+                        const card = document.querySelector('.card.text-center');
+                        if (card) card.style.display = 'none';
+                        
+                        // On affiche le message de succès
+                        const successHtml = `
+                            <div class="card text-center" style="background: var(--success-soft); border: 2px solid var(--success); animation: fadeIn 0.4s ease;">
+                                <div style="font-size: 60px; margin-bottom: 12px;">✅</div>
+                                <h2 style="color: #047857; font-weight: 900; font-size: 20px; margin: 0 0 8px 0;">Dépôt effectué !</h2>
+                                <p style="color: var(--text); font-size: 14px; margin: 0 0 16px 0;">Ton compte 1xBet a bien été crédité.</p>
+                                <a href="/historique" class="btn btn-primary">Voir mon historique</a>
+                            </div>
+                        `;
+                        const container = document.querySelector('.page.fade-in');
+                        if (container) container.insertAdjacentHTML('afterbegin', successHtml);
+                        
+                        // Confettis !
+                        if (typeof fireConfetti === 'function') fireConfetti();
+                    }
+                }).catch(e => {});
+        }, 3000);
+    });
 </script>
+
 {% endblock %}
+
+
+
+
