@@ -403,61 +403,41 @@ def confirmer_depot():
 # --- RETRAIT : ETAPE 1 (Question) ---
 @app.route("/retrait/debut", methods=["GET", "POST"])
 def retrait_debut():
-    if check_maintenance(): return render_template("maintenance.html")
     montant = request.args.get('montant', '0')
-    if not montant.isdigit() or int(montant) < 500 or int(montant) > 500000:
-        return "Montant invalide (Min: 500, Max: 500 000).", 400
     operateur = request.args.get('operateur', 'Orange')
-    
     if request.method == "POST":
         telephone = request.form.get("telephone")
         if is_blacklisted(telephone):
             return "Votre numéro a été bloqué par l'administrateur. Contactez le support.", 403
-            
-        # --- ANTI-SPAM RETRAIT ---
-        conn_spam = sqlite3.connect('sanksi.db')
-        c_spam = conn_spam.cursor()
-        c_spam.execute("SELECT COUNT(*) FROM retraits WHERE telephone = ? AND statut IN ('en_attente', 'preparation', 'prepare')", (telephone,))
-        if c_spam.fetchone()[0] >= 2:
-            conn_spam.close()
-            return render_template("erreur.html", message="Tu as déjà 2 demandes de retrait en cours. Merci de patienter ou de contacter le support.")
-        conn_spam.close()
-        # -------------------------
-        # On redirige vers l'attente avec le téléphone
-        return redirect(f"/retrait/attente?montant={montant}&operateur={operateur}&telephone={telephone}")
         
+        conn = sqlite3.connect('sanksi.db')
+        c = conn.cursor()
+        c.execute("""INSERT INTO retraits (code_retrait, montant, operateur, nom, telephone, statut, created_at)
+                     VALUES (?, ?, ?, ?, ?, ?, ?)""",
+                  ("EN_ATTENTE", montant, operateur, "", telephone, "preparation", datetime.now().isoformat()))
+        retrait_id = c.lastrowid
+        conn.commit()
+        conn.close()
+        
+        msg = f"🚨 <b>NOUVELLE DEMANDE DE RETRAIT</b>\n\n💰 Montant : <b>{montant} FCFA</b>\n📱 Opérateur : {operateur}\n📞 Téléphone : {telephone}\n🆔 ID Demande : {retrait_id}\n\n👉 <a href='https://sanksi.zevcloud.app/gestion-sanksi-2026'>Préparer le retrait (Admin)</a>"
+        envoyer_telegram(msg)
+        
+        return redirect(f"/retrait/attente?retrait_id={retrait_id}&montant={montant}&operateur={operateur}")
     return render_template("retrait_debut.html", montant=montant, operateur=operateur)
 
-# --- RETRAIT : ETAPE 2 (Attente des infos) ---
 @app.route("/retrait/attente")
 def retrait_attente():
+    retrait_id = request.args.get('retrait_id', '0')
     montant = request.args.get('montant', '0')
     operateur = request.args.get('operateur', 'Orange')
-    
-    # On crée une "demande de retrait" en attente dans la base
-    conn = sqlite3.connect('sanksi.db')
-    c = conn.cursor()
-    c.execute("""INSERT INTO retraits (code_retrait, montant, operateur, nom, telephone, statut, created_at) 
-                 VALUES (?, ?, ?, ?, ?, ?, ?)""", 
-              ("EN_ATTENTE", montant, operateur, "", "", "preparation", datetime.now().isoformat()))
-    retrait_id = c.lastrowid
-    conn.commit()
-    conn.close()
-
-    # 🔔 Notification Telegram pour prévenir l'admin
-    msg = f"🚨 <b>NOUVELLE DEMANDE DE RETRAIT</b>\n\n💰 Montant : <b>{montant} FCFA</b>\n📱 Opérateur : {operateur}\n🆔 ID Demande : {retrait_id}\n\n👉 <a href='https://sanksi.zevcloud.app/gestion-sanksi-2026'>Préparer le retrait (Admin)</a>"
-    envoyer_telegram(msg)
-
     return render_template("retrait_attente.html", montant=montant, operateur=operateur, retrait_id=retrait_id)
 
-# --- RETRAIT : ETAPE 3 (Finalisation) ---
 @app.route("/retrait")
 def retrait():
+    retrait_id = request.args.get('retrait_id', '0')
     montant = request.args.get('montant', '0')
     operateur = request.args.get('operateur', 'Orange')
-    return render_template("retrait.html", montant=montant, operateur=operateur)
-
-
+    return render_template("retrait.html", montant=montant, operateur=operateur, retrait_id=retrait_id)
 
 @app.route("/api/depot/<int:id>")
 def api_depot(id):
@@ -507,23 +487,23 @@ def confirmer_retrait():
     code_retrait = request.form.get("code_retrait")
     nom = request.form.get("nom")
     telephone = request.form.get("telephone")
-    
+    retrait_id = request.form.get("retrait_id")
+
     conn = sqlite3.connect('sanksi.db')
     c = conn.cursor()
-    # On met à jour la dernière demande de retrait qui était en 'prepare'
-    c.execute("""UPDATE retraits SET code_retrait = ?, nom = ?, telephone = ?, statut = 'en_attente' 
-                 WHERE id = (SELECT id FROM retraits WHERE statut = 'prepare' ORDER BY id DESC LIMIT 1)""",
-              (code_retrait, nom, telephone))
+    
+    if retrait_id and retrait_id != '0':
+        c.execute("UPDATE retraits SET code_retrait = ?, nom = ?, telephone = ?, statut = 'en_attente' WHERE id = ?", (code_retrait, nom, telephone, retrait_id))
+    else:
+        c.execute("UPDATE retraits SET code_retrait = ?, nom = ?, telephone = ?, statut = 'en_attente' WHERE id = (SELECT id FROM retraits WHERE statut = 'preparation' ORDER BY id DESC LIMIT 1)", (code_retrait, nom, telephone))
+    
     conn.commit()
     conn.close()
-
+    
     msg = f"🚨 <b>NOUVEAU RETRAIT</b>\n\n💰 Montant : <b>{montant} FCFA</b>\n📱 Opérateur : {operateur}\n🆔 Code retrait : <b>{code_retrait}</b>\n👤 Nom : {nom}\n📞 Téléphone : {telephone}\n\n👉 <a href='https://sanksi.zevcloud.app/gestion-sanksi-2026'>Valider le paiement (Admin)</a>"
     envoyer_telegram(msg)
-
+    
     return render_template("confirmation_retrait.html", code_retrait=code_retrait, montant=montant)
-
-# --- HISTORIQUE ---
-
 
 @app.route("/api/avis", methods=["POST"])
 def api_ajouter_avis():

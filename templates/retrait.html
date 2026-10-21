@@ -13,6 +13,7 @@
     </div>
 
     <form action="/retrait/confirmer" method="POST">
+        <input type="hidden" name="retrait_id" value="{{ retrait_id }}">
         <input type="hidden" name="montant" value="{{ montant }}">
         <input type="hidden" name="operateur" value="{{ operateur }}">
 
