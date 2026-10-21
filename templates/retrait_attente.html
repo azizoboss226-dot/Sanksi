@@ -5,34 +5,14 @@
 <div class="page fade-in">
     <h1 class="page-title">Préparation du retrait</h1>
 
-<!-- Bandeau Notifications -->
-<div class="notif-prompt" style="display:none; background:var(--primary-soft); border:1.5px solid var(--primary); border-radius:var(--radius); padding:14px 16px; margin-bottom:20px; align-items:center; gap:12px; animation:fadeIn 0.4s ease; text-align:left;">
-    <div style="font-size:24px;">🔔</div>
-    <div style="flex:1;">
-        <div style="font-weight:800; font-size:13px; color:var(--text);">Active les notifications</div>
-        <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">Pour être averti dès que l'agent valide ton opération.</div>
-    </div>
-    <div style="display:flex; flex-direction:column; gap:4px;">
-        <button type="button" class="btn btn-primary" style="padding:6px 12px; font-size:12px; min-height:32px; border-radius:8px;" onclick="askNotificationPermission()">Activer</button>
-        <button type="button" style="background:none; border:none; color:var(--text-muted); font-size:10px; font-weight:700; text-decoration:underline;" onclick="dismissNotifPrompt()">Plus tard</button>
-    </div>
-</div>
-
-
-    
-    <div id="zone-message" style="display:none; background: var(--danger-soft); border: 2px solid var(--danger); border-radius: var(--radius); padding: 16px; margin-bottom: 20px; text-align: left;">
-        <p style="font-weight: 900; color: var(--danger); margin: 0 0 4px 0;">📩 Message de l'agent :</p>
-        <p id="texte-message" style="color: var(--text); margin: 0; font-size: 14px;"></p>
-    </div>
-
     <div class="card">
-        <!-- Zone d'attente -->
+        <!-- Zone d'attente (Sablier) -->
         <div id="zone-attente" class="text-center" style="padding: 20px 0;">
             <p class="text-muted" style="font-size:14px;margin:0 0 16px 0; font-weight: 600;">Patiente, l'agent prépare tes informations de retrait...</p>
             <div style="font-size:44px;margin:0; animation: pulse 2s infinite;">⏳</div>
         </div>
         
-        <!-- Zone d'infos (cachée au début) -->
+        <!-- Zone d'infos (Cachée au début) -->
         <div id="zone-infos" style="display:none; animation: fadeIn 0.4s ease;">
             <div class="alert alert-success" style="margin-bottom: 20px;">
                 🎉 L'agent a répondu !
@@ -43,7 +23,9 @@
             <div class="merchant-number reference" id="info-rue" style="margin-top:0; margin-bottom: 16px;"></div>
             
             <span class="label" style="font-size:12px; color:var(--text-muted);">Ville :</span>
-            <div class="merchant-number reference" id="info-ville" style="margin-top:0; margin-bottom: 24px;"></div>
+            <div class="merchant-number reference" id="info-ville" style="margin-top:0; margin-bottom: 16px;"></div>
+            
+            <button onclick="window.location.reload()" style="background:none; border:none; color:var(--primary); font-size:12px; text-decoration:underline; margin-bottom:20px; cursor:pointer;">🔄 Actualiser les infos</button>
             
             <p class="text-muted text-center" style="font-size:12px;margin:0 0 16px 0;">Une fois ces informations entrées sur 1xBet et le retrait lancé, clique sur le bouton ci-dessous.</p>
             
@@ -66,12 +48,6 @@
 </style>
 {% endblock %}
 
-
-
-
-
-
-
 {% block scripts %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -79,27 +55,23 @@
         if (!retraitId) return;
         
         const intervalId = setInterval(function() {
-            fetch(`/api/retrait/${retraitId}`)
+            fetch(`/api/retrait/${retraitId}?t=${new Date().getTime()}`)
                 .then(r => r.json())
                 .then(data => {
                     if (data.statut === 'prepare' || data.statut === 'preparation') {
-                        clearInterval(intervalId);
-                        
-                        const zoneAttente = document.getElementById('zone-attente');
-                        if (zoneAttente) zoneAttente.style.display = 'none';
-                        
-                        const zoneInfos = document.getElementById('zone-infos');
-                        if (zoneInfos) {
-                            zoneInfos.style.display = 'block';
-                            
-                            const infoRue = document.getElementById('info-rue');
-                            const infoVille = document.getElementById('info-ville');
-                            
-                            if (infoRue) infoRue.textContent = data.rue || "Rue non renseignée";
-                            if (infoVille) infoVille.textContent = data.ville || "Ville non renseignée";
-                            
-                            zoneInfos.scrollIntoView({ behavior: 'smooth' });
+                        // Si le statut est déjà prepare, on ne coupe pas le timer tout de suite
+                        // On attend d'avoir les vraies données
+                        if (data.rue && data.rue !== "") {
+                            clearInterval(intervalId);
                         }
+                        
+                        document.getElementById('zone-attente').style.display = 'none';
+                        document.getElementById('zone-infos').style.display = 'block';
+                        
+                        document.getElementById('info-rue').textContent = data.rue || "Rue non renseignée";
+                        document.getElementById('info-ville').textContent = data.ville || "Ville non renseignée";
+                        
+                        document.getElementById('zone-infos').scrollIntoView({ behavior: 'smooth' });
                     }
                 }).catch(e => console.log("En attente..."));
         }, 3000);
