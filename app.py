@@ -303,7 +303,7 @@ def get_fake_stats():
 
     # Si l'app a moins de 30 jours, on renvoie les faux chiffres. Sinon, 0.
     if days_active <= 30:
-        return 150, 2500000
+        return 200, 2000000
     else:
         return 0, 0
 
