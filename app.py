@@ -419,8 +419,17 @@ def retrait_debut():
         conn.commit()
         conn.close()
         
-        msg = f"🚨 <b>NOUVELLE DEMANDE DE RETRAIT</b>\n\n💰 Montant : <b>{montant} FCFA</b>\n📱 Opérateur : {operateur}\n📞 Téléphone : {telephone}\n🆔 ID Demande : {retrait_id}\n\n👉 <a href='https://sanksi.zevcloud.app/gestion-sanksi-2026'>Préparer le retrait (Admin)</a>"
-        envoyer_telegram(msg)
+        msg = f"🚨 <b>NOUVELLE DEMANDE DE RETRAIT</b>\n\n💰 Montant : <b>{montant} FCFA</b>\n📱 Opérateur : {operateur}\n📞 Téléphone : {telephone}\n🆔 ID Demande : {retrait_id}"
+        
+        # On envoie avec un bouton pour préparer directement depuis Telegram
+        token_tg = os.environ.get("TELEGRAM_TOKEN")
+        chat_tg = os.environ.get("TELEGRAM_CHAT_ID")
+        if token_tg and chat_tg:
+            keyboard = {"inline_keyboard": [[{"text": "🏠 Préparer ce retrait", "callback_data": f"prep_retrait_{retrait_id}"}]]}
+            payload = {"chat_id": chat_tg, "text": msg, "parse_mode": "HTML", "reply_markup": keyboard}
+            import urllib.request
+            req = urllib.request.Request(f"https://api.telegram.org/bot{token_tg}/sendMessage", data=json.dumps(payload).encode('utf-8'), headers={'Content-Type': 'application/json'})
+            urllib.request.urlopen(req)
         
         return redirect(f"/retrait/attente?retrait_id={retrait_id}&montant={montant}&operateur={operateur}")
     return render_template("retrait_debut.html", montant=montant, operateur=operateur)
