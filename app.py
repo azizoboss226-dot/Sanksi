@@ -584,18 +584,18 @@ def historique():
         if tel:
             conn = sqlite3.connect('sanksi.db')
             c = conn.cursor()
-            c.execute("SELECT * FROM demandes WHERE telephone = ? ORDER BY id DESC", (tel,))
+            c.execute("SELECT * FROM demandes WHERE substr(replace(replace(replace(replace(telephone,' ',''),'+',''),'-',''),'.',''), -8) = ? ORDER BY id DESC", (cle_tel(tel),))
             demandes = c.fetchall()
-            c.execute("SELECT * FROM retraits WHERE telephone = ? ORDER BY id DESC", (tel,))
+            c.execute("SELECT * FROM retraits WHERE substr(replace(replace(replace(replace(telephone,' ',''),'+',''),'-',''),'.',''), -8) = ? ORDER BY id DESC", (cle_tel(tel),))
             retraits = c.fetchall()
             
             # On garde la connexion ouverte pour les points de fidélité
             try:
-                c.execute("SELECT points FROM fidelite WHERE telephone = ?", (tel,))
+                c.execute("SELECT points FROM fidelite WHERE substr(replace(replace(replace(replace(telephone,' ',''),'+',''),'-',''),'.',''), -8) = ?", (cle_tel(tel),))
                 row_pts = c.fetchone()
                 if row_pts: points_fidelite = row_pts[0]
                 
-                c.execute("SELECT SUM(montant) FROM demandes WHERE telephone = ? AND statut = 'valide'", (tel,))
+                c.execute("SELECT SUM(montant) FROM demandes WHERE substr(replace(replace(replace(replace(telephone,' ',''),'+',''),'-',''),'.',''), -8) = ? AND statut = 'valide'", (cle_tel(tel),))
                 row_total = c.fetchone()
                 if row_total and row_total[0]: total_depots_valides = int(row_total[0])
             except Exception as e:
