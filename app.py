@@ -846,20 +846,26 @@ def admin_action(type_op, id, action):
         c.execute("SELECT telephone, montant FROM demandes WHERE id = ?", (id,))
         row = c.fetchone()
         if row and row[0]:
+            motif = (request.args.get("motif") or "").strip()
             if action == 'valider':
-                envoyer_push(row[0], "✅ Dépôt validé !", f"Ton compte a été crédité de {row[1]} FCFA.")
+                msg_notif = f"✅ Ton dépôt de {row[1]} FCFA a été effectué."
             else:
-                envoyer_push(row[0], "❌ Dépôt refusé", "Contacte le support pour plus d'infos.")
+                msg_notif = f"❌ Ton dépôt de {row[1]} FCFA a été refusé." + (f" Motif : {motif}" if motif else " Contacte le support pour en savoir plus.")
+            c.execute("INSERT INTO notifications (telephone, message, lu, created_at) VALUES (?, ?, 0, ?)", (row[0], msg_notif, datetime.now().isoformat()))
+            pousser(row[0], msg_notif)
                 
     elif type_op == 'retrait':
         c.execute("UPDATE retraits SET statut = ? WHERE id = ?", (nouveau_statut, id))
         c.execute("SELECT telephone, montant FROM retraits WHERE id = ?", (id,))
         row = c.fetchone()
         if row and row[0]:
+            motif = (request.args.get("motif") or "").strip()
             if action == 'valider':
-                envoyer_push(row[0], "✅ Retrait payé !", f"Ton argent a été envoyé.")
+                msg_notif = f"✅ Ton retrait de {row[1]} FCFA a été payé."
             else:
-                envoyer_push(row[0], "❌ Retrait refusé", "Contacte le support pour plus d'infos.")
+                msg_notif = f"❌ Ton retrait de {row[1]} FCFA a été refusé." + (f" Motif : {motif}" if motif else " Contacte le support pour en savoir plus.")
+            c.execute("INSERT INTO notifications (telephone, message, lu, created_at) VALUES (?, ?, 0, ?)", (row[0], msg_notif, datetime.now().isoformat()))
+            pousser(row[0], msg_notif)
                 
     conn.commit()
     conn.close()
