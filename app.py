@@ -872,6 +872,38 @@ def admin_action(type_op, id, action):
     
     return redirect("/gestion-sanksi-2026")
 
+@app.route("/gestion-sanksi-2026/test-push")
+def admin_test_push():
+    if not session.get('admin'): return redirect("/gestion-sanksi-2026")
+    import os, json
+    conn = sqlite3.connect('sanksi.db')
+    c = conn.cursor()
+    c.execute("SELECT endpoint, p256dh, auth, telephone FROM push_subs")
+    lignes = c.fetchall()
+    conn.close()
+    sujet = os.environ.get("VAPID_SUBJECT") or ""
+    out = ["abonnements : " + str(len(lignes)),
+           "cle privee : " + ("oui" if os.environ.get("VAPID_PRIVATE_KEY") else "NON"),
+           "cle publique : " + ("oui" if os.environ.get("VAPID_PUBLIC_KEY") else "NON"),
+           "sujet : " + ("ok (mailto)" if sujet.startswith("mailto:") else "ABSENT OU INCORRECT")]
+    ent = {"Content-Type": "text/plain; charset=utf-8"}
+    try:
+        from pywebpush import webpush
+    except Exception as e_imp:
+        out.append("pywebpush : ERREUR " + str(e_imp))
+        return "\n".join(out), 200, ent
+    for e, p, a, t in lignes:
+        try:
+            webpush(subscription_info={"endpoint": e, "keys": {"p256dh": p, "auth": a}},
+                    data=json.dumps({"title": "SANKSI", "body": "Test de notification", "url": "/"}),
+                    vapid_private_key=os.environ.get("VAPID_PRIVATE_KEY"),
+                    vapid_claims={"sub": sujet or "mailto:contact@sanksi.com"})
+            out.append("OK -> numero " + (cle_tel(t) or "aucun"))
+        except Exception as err:
+            out.append("ERREUR -> " + str(err)[:200])
+    return "\n".join(out), 200, ent
+
+
 @app.route("/gestion-sanksi-2026/backup")
 def admin_backup():
     if not session.get('admin'): return redirect("/gestion-sanksi-2026")
