@@ -162,9 +162,14 @@
         envoi = true;
         navigator.serviceWorker.ready.then(function (reg) {
             return reg.pushManager.getSubscription().then(function (sub) {
-                if (sub) return sub;
                 return cle().then(function (k) {
-                    return reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: convertir(k) });
+                    var attendu = convertir(k);
+                    function creer() { return reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: attendu }); }
+                    if (!sub) return creer();
+                    var cur = sub.options && sub.options.applicationServerKey ? new Uint8Array(sub.options.applicationServerKey) : null;
+                    var memeCle = cur && cur.length === attendu.length && cur.every(function (v, i) { return v === attendu[i]; });
+                    if (memeCle) return sub;
+                    return sub.unsubscribe().then(creer);
                 });
             });
         }).then(function (sub) {

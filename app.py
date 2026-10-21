@@ -886,12 +886,24 @@ def admin_test_push():
            "cle privee : " + ("oui" if os.environ.get("VAPID_PRIVATE_KEY") else "NON"),
            "cle publique : " + ("oui" if os.environ.get("VAPID_PUBLIC_KEY") else "NON"),
            "sujet : " + ("ok (mailto)" if sujet.startswith("mailto:") else "ABSENT OU INCORRECT")]
+    try:
+        import base64
+        from cryptography.hazmat.primitives.asymmetric import ec
+        from cryptography.hazmat.primitives import serialization
+        _pv = (os.environ.get("VAPID_PRIVATE_KEY") or "").strip()
+        _k = ec.derive_private_key(int.from_bytes(base64.urlsafe_b64decode(_pv + "=" * (-len(_pv) % 4)), "big"), ec.SECP256R1())
+        _pub = _k.public_key().public_bytes(serialization.Encoding.X962, serialization.PublicFormat.UncompressedPoint)
+        _att = base64.urlsafe_b64encode(_pub).rstrip(b"=").decode()
+        out.append("paire de cles : " + ("COHERENTE" if _att == (os.environ.get("VAPID_PUBLIC_KEY") or "").strip() else "DIFFERENTES (la cle publique ne correspond pas a la cle privee)"))
+    except Exception as e_k:
+        out.append("paire de cles : non verifiable (" + str(e_k)[:60] + ")")
     ent = {"Content-Type": "text/plain; charset=utf-8"}
     try:
         from pywebpush import webpush
     except Exception as e_imp:
         out.append("pywebpush : ERREUR " + str(e_imp))
         return "\n".join(out), 200, ent
+    morts = []
     for e, p, a, t in lignes:
         try:
             webpush(subscription_info={"endpoint": e, "keys": {"p256dh": p, "auth": a}},
@@ -900,7 +912,17 @@ def admin_test_push():
                     vapid_claims={"sub": sujet or "mailto:contact@sanksi.com"})
             out.append("OK -> numero " + (cle_tel(t) or "aucun"))
         except Exception as err:
-            out.append("ERREUR -> " + str(err)[:200])
+            msg = str(err)
+            out.append("ERREUR -> " + msg[:200])
+            if "410" in msg or "403" in msg or "404" in msg:
+                morts.append(e)
+    if morts:
+        conn = sqlite3.connect('sanksi.db')
+        for e in morts:
+            conn.execute("DELETE FROM push_subs WHERE endpoint = ?", (e,))
+        conn.commit()
+        conn.close()
+        out.append("abonnements invalides supprimes : " + str(len(morts)))
     return "\n".join(out), 200, ent
 
 
