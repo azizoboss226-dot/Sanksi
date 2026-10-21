@@ -3,6 +3,13 @@
 
 {% block content %}
 <div class="page fade-in" style="justify-content:center;">
+
+<div id="zone-succes" style="display: none; background: var(--success-soft); border: 2px solid var(--success); border-radius: var(--radius); padding: 24px; text-align: center; margin-bottom: 20px; animation: fadeIn 0.4s ease;">
+    <div style="font-size: 50px; margin-bottom: 12px;">✅</div>
+    <h2 style="color: #047857; font-weight: 900; font-size: 18px; margin: 0 0 8px 0;">Dépôt effectué !</h2>
+    <p style="color: var(--text); font-size: 14px; margin: 0;">Ton compte 1xBet a bien été crédité.</p>
+</div>
+
     
 <!-- Bandeau Notifications -->
 <div class="notif-prompt" style="display:none; background:var(--primary-soft); border:1.5px solid var(--primary); border-radius:var(--radius); padding:14px 16px; margin-bottom:20px; align-items:center; gap:12px; animation:fadeIn 0.4s ease; text-align:left;">
@@ -45,28 +52,29 @@
 </div>
 {% endblock %}
 
-{% block scripts %}
 
+
+{% block scripts %}
 <script>
     const demandeId = "{{ demande_id }}";
-    function verifierMessageDepot() {
+    
+    function verifierStatutDepot() {
         if (!demandeId) return;
         fetch(`/api/depot/${demandeId}`)
             .then(r => r.json())
             .then(data => {
-                if (data.message && data.message.trim() !== "") {
-                    document.getElementById('zone-message').style.display = 'block';
-                    document.getElementById('texte-message').innerText = data.message;
+                if (data.statut === 'valide') {
+                    // On cache la carte d'attente et on montre le succès
+                    document.querySelector('.card.text-center').style.display = 'none';
+                    document.getElementById('zone-succes').style.display = 'block';
+                    clearInterval(intervalId);
+                    
+                    // On fait tomber les confettis !
+                    if (typeof fireConfetti === 'function') fireConfetti();
                 }
-            }).catch(e => {});
+            }).catch(e => console.log("En attente de validation..."));
     }
-    setInterval(verifierMessageDepot, 3000);
-</script>
-
-<script>
-    // Lancer les confettis au chargement de la page
-    document.addEventListener('DOMContentLoaded', function() {
-        setTimeout(fireConfetti, 300);
-    });
+    
+    const intervalId = setInterval(verifierStatutDepot, 3000);
 </script>
 {% endblock %}
