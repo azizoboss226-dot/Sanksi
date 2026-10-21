@@ -503,7 +503,7 @@ def confirmer_retrait():
     msg = f"🚨 <b>NOUVEAU RETRAIT</b>\n\n💰 Montant : <b>{montant} FCFA</b>\n📱 Opérateur : {operateur}\n🆔 Code retrait : <b>{code_retrait}</b>\n👤 Nom : {nom}\n📞 Téléphone : {telephone}\n\n👉 <a href='https://sanksi.zevcloud.app/gestion-sanksi-2026'>Valider le paiement (Admin)</a>"
     envoyer_telegram(msg)
     
-    return render_template("confirmation_retrait.html", code_retrait=code_retrait, montant=montant)
+    return render_template("confirmation_retrait.html", code_retrait=code_retrait, montant=montant, retrait_id=retrait_id)
 
 @app.route("/api/avis", methods=["POST"])
 def api_ajouter_avis():

@@ -4,20 +4,8 @@
 {% block content %}
 <div class="page fade-in" style="justify-content:center;">
     
-<!-- Bandeau Notifications -->
-<div class="notif-prompt" style="display:none; background:var(--primary-soft); border:1.5px solid var(--primary); border-radius:var(--radius); padding:14px 16px; margin-bottom:20px; align-items:center; gap:12px; animation:fadeIn 0.4s ease; text-align:left;">
-    <div style="font-size:24px;">🔔</div>
-    <div style="flex:1;">
-        <div style="font-weight:800; font-size:13px; color:var(--text);">Active les notifications</div>
-        <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">Pour être averti dès que l'agent valide ton opération.</div>
-    </div>
-    <div style="display:flex; flex-direction:column; gap:4px;">
-        <button type="button" class="btn btn-primary" style="padding:6px 12px; font-size:12px; min-height:32px; border-radius:8px;" onclick="askNotificationPermission()">Activer</button>
-        <button type="button" style="background:none; border:none; color:var(--text-muted); font-size:10px; font-weight:700; text-decoration:underline;" onclick="dismissNotifPrompt()">Plus tard</button>
-    </div>
-</div>
-
-<div class="card text-center" style="padding: 32px 20px;">
+    <!-- ZONE 1 : En attente de validation par l'admin -->
+    <div id="zone-attente" class="card text-center" style="padding: 32px 20px;">
         <div class="success-bounce" style="font-size:60px;margin-bottom:16px;">⏳</div>
         <h1 class="page-title">Retrait demandé</h1>
         <p class="text-muted" style="font-size:14px;margin:0 0 20px 0;">
@@ -30,19 +18,51 @@
         </div>
         
         <p class="text-muted" style="font-size:12px;margin:0 0 24px 0;">
-            L'agent va effectuer le transfert vers ton numéro. Tu peux suivre l'état de ta demande à tout moment.
+            L'agent va effectuer le transfert vers ton numéro. Reste sur cette page, elle se mettra à jour automatiquement.
         </p>
         
-        <a href="/historique" class="btn btn-primary" style="margin-bottom: 10px;">🔄 Vérifier mon statut</a>
+        <a href="/historique" class="btn btn-primary" style="margin-bottom: 10px;">🔄 Vérifier mon statut manuellement</a>
         <a href="/" class="btn btn-secondary">Retour à l'accueil</a>
     </div>
+
+    <!-- ZONE 2 : Succès (Caché au début) -->
+    <div id="zone-succes" class="card text-center" style="padding: 32px 20px; display: none; background: var(--success-soft); border: 2px solid var(--success); animation: fadeIn 0.4s ease;">
+        <div style="font-size:60px;margin-bottom:16px;">✅</div>
+        <h1 class="page-title" style="color: #047857;">Retrait validé !</h1>
+        <p style="color: var(--text); font-size:14px;margin:0 0 20px 0;">
+            Ton argent (<b>{{ montant }} FCFA</b>) a bien été transféré sur ton numéro par l'agent.
+        </p>
+        
+        <a href="/historique" class="btn btn-primary" style="margin-bottom: 10px;">Voir mon historique</a>
+        <a href="/" class="btn btn-secondary">Retour à l'accueil</a>
+    </div>
+
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        setTimeout(fireConfetti, 300);
+        const retraitId = "{{ retrait_id }}";
+        if (!retraitId || retraitId === "None" || retraitId === "0") return;
+        
+        const intervalId = setInterval(function() {
+            // On ajoute un timestamp pour contourner le cache
+            fetch(`/api/retrait/${retraitId}?t=${new Date().getTime()}`, { cache: 'no-store' })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.statut === 'valide') {
+                        clearInterval(intervalId);
+                        
+                        // On cache la zone d'attente et on affiche la zone de succès
+                        document.getElementById('zone-attente').style.display = 'none';
+                        document.getElementById('zone-succes').style.display = 'block';
+                        
+                        // Confettis !
+                        if (typeof fireConfetti === 'function') fireConfetti();
+                    }
+                }).catch(e => console.log("En attente de validation..."));
+        }, 3000);
     });
 </script>
 {% endblock %}
