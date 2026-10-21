@@ -70,6 +70,8 @@
 
 
 
+
+
 {% block scripts %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -83,27 +85,21 @@
                     if (data.statut === 'prepare' || data.statut === 'preparation') {
                         clearInterval(intervalId);
                         
-                        // On cache la zone d'attente
                         const zoneAttente = document.getElementById('zone-attente');
                         if (zoneAttente) zoneAttente.style.display = 'none';
                         
-                        // On affiche les infos
                         const zoneInfos = document.getElementById('zone-infos');
                         if (zoneInfos) {
                             zoneInfos.style.display = 'block';
                             
-                            // On remplit les cases avec ce que l'API renvoie
                             const infoRue = document.getElementById('info-rue');
                             const infoVille = document.getElementById('info-ville');
                             
                             if (infoRue) infoRue.textContent = data.rue || "Rue non renseignée";
                             if (infoVille) infoVille.textContent = data.ville || "Ville non renseignée";
                             
-                            // On fait défiler la page
                             zoneInfos.scrollIntoView({ behavior: 'smooth' });
                         }
-                        
-                        if (typeof fireConfetti === 'function') fireConfetti();
                     }
                 }).catch(e => console.log("En attente..."));
         }, 3000);
