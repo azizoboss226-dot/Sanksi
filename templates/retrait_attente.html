@@ -9,7 +9,7 @@
         <!-- Zone d'attente (Sablier) -->
         <div id="zone-attente" class="text-center" style="padding: 20px 0;">
             <p class="text-muted" style="font-size:14px;margin:0 0 16px 0; font-weight: 600;">Patiente, l'agent prépare tes informations de retrait...</p>
-            <div style="font-size:44px;margin:0; animation: pulse 2s infinite;">⏳</div>
+            <div style="font-size:44px;margin:0; display:inline-block; animation: tourner 2.4s ease-in-out infinite;">⏳</div>
         </div>
         
         <!-- Zone d'infos (Cachée au début) -->
@@ -40,6 +40,7 @@
 </div>
 
 <style>
+    @keyframes tourner { 0% { transform: rotate(0deg); } 50% { transform: rotate(180deg); } 100% { transform: rotate(360deg); } }
     @keyframes pulse {
         0% { transform: scale(1); opacity: 1; }
         50% { transform: scale(1.1); opacity: 0.7; }
@@ -51,30 +52,28 @@
 {% block scripts %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const retraitId = "{{ retrait_id }}";
+        var retraitId = "{{ retrait_id }}";
         if (!retraitId) return;
-        
-        const intervalId = setInterval(function() {
-            fetch(`/api/retrait/${retraitId}?t=${new Date().getTime()}`)
-                .then(r => r.json())
-                .then(data => {
-                    if (data.statut === 'prepare' || data.statut === 'preparation') {
-                        // Si le statut est déjà prepare, on ne coupe pas le timer tout de suite
-                        // On attend d'avoir les vraies données
-                        if (data.rue && data.rue !== "") {
-                            clearInterval(intervalId);
-                        }
-                        
-                        document.getElementById('zone-attente').style.display = 'none';
-                        document.getElementById('zone-infos').style.display = 'block';
-                        
-                        document.getElementById('info-rue').textContent = data.rue || "Rue non renseignée";
-                        document.getElementById('info-ville').textContent = data.ville || "Ville non renseignée";
-                        
-                        document.getElementById('zone-infos').scrollIntoView({ behavior: 'smooth' });
+        var attente = document.getElementById('zone-attente');
+        var infos = document.getElementById('zone-infos');
+        var timer = null;
+        function verifier() {
+            fetch('/api/retrait/' + retraitId + '?t=' + new Date().getTime())
+                .then(function (r) { return r.json(); })
+                .then(function (data) {
+                    var rue = (data.rue || '').trim();
+                    var ville = (data.ville || '').trim();
+                    if (rue && ville) {
+                        if (timer) clearInterval(timer);
+                        document.getElementById('info-rue').textContent = rue;
+                        document.getElementById('info-ville').textContent = ville;
+                        attente.style.display = 'none';
+                        infos.style.display = 'block';
                     }
-                }).catch(e => console.log("En attente..."));
-        }, 3000);
+                }).catch(function () {});
+        }
+        timer = setInterval(verifier, 3000);
+        verifier();
     });
 </script>
 {% endblock %}
