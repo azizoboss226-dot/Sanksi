@@ -1126,6 +1126,21 @@ def push_abonner():
     return jsonify({"ok": True})
 
 
+@app.route("/api/push/desabonner", methods=["POST"])
+def push_desabonner():
+    from flask import jsonify
+    d = request.get_json(silent=True) or {}
+    ep = (d.get("endpoint") or "").strip()
+    if not ep:
+        return jsonify({"ok": False}), 400
+    conn = sqlite3.connect('sanksi.db')
+    c = conn.cursor()
+    c.execute("DELETE FROM push_subs WHERE endpoint = ?", (ep,))
+    conn.commit()
+    conn.close()
+    return jsonify({"ok": True})
+
+
 @app.route("/sw.js")
 def service_worker():
     from flask import send_from_directory

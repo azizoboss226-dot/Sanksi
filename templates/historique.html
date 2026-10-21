@@ -5,6 +5,70 @@
 <div class="page fade-in">
     <a href="/" class="back-link">← Retour</a>
     <h1 class="page-title">Mon Historique</h1>
+    <div class="card" id="carte-notifs" style="margin-bottom:16px; display:flex; align-items:center; justify-content:space-between; gap:12px;">
+        <div style="min-width:0;">
+            <div style="font-weight:900; font-size:14px;">🔔 Notifications</div>
+            <div id="notifs-etat" style="font-size:12px; color:var(--text-muted); margin-top:2px; line-height:1.35;"></div>
+        </div>
+        <button type="button" id="notifs-bouton" class="btn btn-primary" style="width:auto; padding:0 16px; min-height:40px; font-size:13px; flex-shrink:0;"></button>
+    </div>
+    <script>
+    (function () {
+        var etatEl = document.getElementById('notifs-etat');
+        var btn = document.getElementById('notifs-bouton');
+        if (!etatEl || !btn) return;
+        function off() { try { return localStorage.getItem('sanksi_notif_off') === '1'; } catch (e) { return false; } }
+        function setOff(v) { try { if (v) localStorage.setItem('sanksi_notif_off', '1'); else localStorage.removeItem('sanksi_notif_off'); } catch (e) {} }
+        function maj() {
+            var p = window.Notification ? Notification.permission : 'absent';
+            if (p === 'absent') {
+                etatEl.textContent = "Non disponibles sur cet appareil. Sur iPhone, installe d'abord l'application.";
+                btn.style.display = 'none';
+                return;
+            }
+            if (p === 'denied') {
+                etatEl.textContent = "Bloquées dans le navigateur : touche l'icône à gauche de l'adresse, puis Autorisations, puis Notifications, puis Autoriser.";
+                btn.style.display = 'none';
+                return;
+            }
+            btn.style.display = '';
+            if (p === 'granted' && !off()) {
+                etatEl.textContent = "Activées sur cet appareil.";
+                btn.textContent = "Désactiver";
+                btn.dataset.action = 'off';
+            } else {
+                etatEl.textContent = "Désactivées sur cet appareil.";
+                btn.textContent = "Activer";
+                btn.dataset.action = 'on';
+            }
+        }
+        btn.onclick = function () {
+            if (btn.dataset.action === 'off') {
+                setOff(true);
+                navigator.serviceWorker.ready.then(function (reg) { return reg.pushManager.getSubscription(); }).then(function (sub) {
+                    if (!sub) return;
+                    var ep = sub.endpoint;
+                    return sub.unsubscribe().then(function () {
+                        return fetch('/api/push/desabonner', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ endpoint: ep }) });
+                    });
+                }).catch(function () {}).then(function () {
+                    window.__pushTel = '';
+                    maj();
+                    if (window.showToast) showToast('Notifications désactivées', 'info');
+                });
+            } else {
+                setOff(false);
+                Notification.requestPermission().then(function (r) {
+                    maj();
+                    if (r === 'granted' && window.showToast) showToast('✅ Notifications activées !', 'success');
+                });
+            }
+        };
+        maj();
+        setInterval(maj, 2000);
+    })();
+    </script>
+
 
     <!-- Bandeau Notifications -->
     <div class="notif-prompt" style="display:none; background:var(--primary-soft); border:1.5px solid var(--primary); border-radius:var(--radius); padding:14px 16px; margin-bottom:20px; align-items:center; gap:12px; animation:fadeIn 0.4s ease;">

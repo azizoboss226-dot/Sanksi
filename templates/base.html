@@ -121,7 +121,7 @@
                     liste.forEach(function (m, i) {
                         setTimeout(function () {
                             showToast(m, 'info');
-                            if (window.Notification && Notification.permission === 'granted') {
+                            if (window.Notification && Notification.permission === 'granted' && !(window.notifOff && window.notifOff())) {
                                 new Notification('SANKSI', { body: m });
                             }
                         }, i * 3500);
@@ -136,6 +136,7 @@
     <script>
 (function () {
     if (!('serviceWorker' in navigator) || !('PushManager' in window) || !window.Notification) return;
+    window.notifOff = function () { try { return localStorage.getItem('sanksi_notif_off') === '1'; } catch (e) { return false; } };
     navigator.serviceWorker.register('/sw.js');
 
     function convertir(s) {
@@ -157,7 +158,7 @@
 
     var envoi = false;
     function abonner() {
-        if (envoi || Notification.permission !== 'granted') return;
+        if (envoi || Notification.permission !== 'granted' || window.notifOff()) return;
         envoi = true;
         navigator.serviceWorker.ready.then(function (reg) {
             return reg.pushManager.getSubscription().then(function (sub) {
@@ -184,7 +185,7 @@
 
     var demande = false;
     function demander() {
-        if (demande || Notification.permission !== 'default') return;
+        if (demande || Notification.permission !== 'default' || window.notifOff()) return;
         demande = true;
         Notification.requestPermission().then(function () { demande = false; abonner(); });
     }
@@ -524,7 +525,7 @@
         var e = etat();
         dernier = e;
         retirer();
-        if (e === 'granted') return;
+        if (e === 'granted' || (window.notifOff && window.notifOff())) return;
         if (e === 'absent' && !(ios && !installee)) return;
 
         var titre, texte, bouton = null;
