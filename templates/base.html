@@ -169,14 +169,14 @@
         }).then(function (sub) {
             var tel = '', deja = '';
             try { tel = localStorage.getItem('sanksi_tel') || ''; } catch (e) {}
-            try { deja = localStorage.getItem('sanksi_push_tel') || ''; } catch (e) {}
+            deja = window.__pushTel || '';
             if (deja === 'ok:' + tel) { envoi = false; return; }
             return fetch('/api/push/abonner', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ telephone: tel, subscription: sub.toJSON() })
             }).then(function (r) { return r.json(); }).then(function (d) {
-                if (d && d.ok) { try { localStorage.setItem('sanksi_push_tel', 'ok:' + tel); } catch (e) {} }
+                if (d && d.ok) { window.__pushTel = 'ok:' + tel; }
                 envoi = false;
             });
         }).catch(function () { envoi = false; });

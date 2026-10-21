@@ -1042,6 +1042,7 @@ def push_abonner():
     tel = (d.get("telephone") or "").strip()
     sub = d.get("subscription") or {}
     keys = sub.get("keys") or {}
+    print("[push] abonnement recu, numero :", cle_tel(tel) if tel else "(aucun)")
     if not sub.get("endpoint") or not keys.get("p256dh") or not keys.get("auth"):
         return jsonify({"ok": False}), 400
     conn = sqlite3.connect('sanksi.db')
