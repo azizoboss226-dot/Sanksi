@@ -150,7 +150,29 @@
     </div>
     {% endif %}
 
-        <h2 class="section-title">Mes Dépôts</h2>
+        <h2 class="section-title" style="">Mes Retraits</h2>
+        {% if retraits %}
+            {% for r in retraits %}
+            <div class="card" style="padding: 16px; margin-bottom: 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <span style="font-weight: 900; color: var(--primary); font-size: 18px;">{{ r[2] }} FCFA</span>
+                    {% if r[5] == 'valide' %}
+                        <span class="badge badge-success">PAYÉ</span>
+                    {% elif r[5] == 'refuse' %}
+                        <span class="badge badge-danger">REFUSÉ</span>
+                    {% else %}
+                        <span class="badge badge-warning">EN ATTENTE</span>
+                    {% endif %}
+                </div>
+                <p class="text-muted" style="font-size: 13px; margin: 4px 0;">Code retrait : <b style="color: var(--text);">{{ r[1] }}</b></p>
+                <button type="button" onclick="signaler('retrait', {{ r[0] }})" style="background:none; border:none; color:var(--danger); font-size:11px; text-decoration:underline; margin-top:8px; padding:0;">❓ Signaler un problème</button>
+
+                {% if r[-1] %}
+                <div style="background: var(--danger-soft); border-left: 3px solid var(--danger); padding: 8px 12px; margin-top: 10px; border-radius: 4px;">
+                    <p style="margin: 0; font-size: 12px; font-weight: 800; color: var(--danger);">📩 Message de l'agent :</p>
+                    <p style="margin: 4px 0 0 0; font-size: 13px;">{{ r[-1] }}</p>
+                
+<h2 class="section-title" style="margin-top: 24px;">Mes Dépôts</h2>
         {% if demandes %}
             {% for d in demandes %}
             <div class="card" style="padding: 16px; margin-bottom: 12px;">
@@ -189,28 +211,7 @@
         {% endif %}
 
         <!-- Retraits -->
-        <h2 class="section-title" style="margin-top: 24px;">Mes Retraits</h2>
-        {% if retraits %}
-            {% for r in retraits %}
-            <div class="card" style="padding: 16px; margin-bottom: 12px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                    <span style="font-weight: 900; color: var(--primary); font-size: 18px;">{{ r[2] }} FCFA</span>
-                    {% if r[5] == 'valide' %}
-                        <span class="badge badge-success">PAYÉ</span>
-                    {% elif r[5] == 'refuse' %}
-                        <span class="badge badge-danger">REFUSÉ</span>
-                    {% else %}
-                        <span class="badge badge-warning">EN ATTENTE</span>
-                    {% endif %}
-                </div>
-                <p class="text-muted" style="font-size: 13px; margin: 4px 0;">Code retrait : <b style="color: var(--text);">{{ r[1] }}</b></p>
-                <button type="button" onclick="signaler('retrait', {{ r[0] }})" style="background:none; border:none; color:var(--danger); font-size:11px; text-decoration:underline; margin-top:8px; padding:0;">❓ Signaler un problème</button>
-
-                {% if r[-1] %}
-                <div style="background: var(--danger-soft); border-left: 3px solid var(--danger); padding: 8px 12px; margin-top: 10px; border-radius: 4px;">
-                    <p style="margin: 0; font-size: 12px; font-weight: 800; color: var(--danger);">📩 Message de l'agent :</p>
-                    <p style="margin: 4px 0 0 0; font-size: 13px;">{{ r[-1] }}</p>
-                </div>
+        </div>
                 {% endif %}
 
             </div>
