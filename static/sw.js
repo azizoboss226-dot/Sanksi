@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sanksi-cache-v1';
+const CACHE_NAME = 'sanksi-cache-v6';
 const urlsToCache = [
     '/',
     '/historique',
