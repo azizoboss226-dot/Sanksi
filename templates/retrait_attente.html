@@ -68,6 +68,8 @@
 
 
 
+
+
 {% block scripts %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -90,20 +92,20 @@
                         if (zoneInfos) {
                             zoneInfos.style.display = 'block';
                             
-                            // On remplit la rue et la ville
+                            // On remplit les cases avec ce que l'API renvoie
                             const infoRue = document.getElementById('info-rue');
                             const infoVille = document.getElementById('info-ville');
-                            if (infoRue) infoRue.textContent = data.rue;
-                            if (infoVille) infoVille.textContent = data.ville;
                             
-                            // On fait défiler la page jusqu'aux infos
+                            if (infoRue) infoRue.textContent = data.rue || "Rue non renseignée";
+                            if (infoVille) infoVille.textContent = data.ville || "Ville non renseignée";
+                            
+                            // On fait défiler la page
                             zoneInfos.scrollIntoView({ behavior: 'smooth' });
                         }
                         
-                        // Confettis pour fêter ça !
                         if (typeof fireConfetti === 'function') fireConfetti();
                     }
-                }).catch(e => {});
+                }).catch(e => console.log("En attente..."));
         }, 3000);
     });
 </script>
