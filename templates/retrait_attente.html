@@ -66,35 +66,45 @@
 </style>
 {% endblock %}
 
+
+
 {% block scripts %}
 <script>
-    const retraitId = "{{ retrait_id }}";
-    let intervalId;
-
-    function verifierStatut() {
-        fetch(`/api/retrait/${retraitId}`)
-            .then(r => r.json())
-            .then(data => {
-                if (data.statut === 'prepare') {
-                    document.getElementById('zone-attente').style.display = 'none';
-                    document.getElementById('zone-infos').style.display = 'block';
-                    document.getElementById('info-rue').textContent = data.rue;
-                    document.getElementById('info-ville').textContent = data.ville;
-                    clearInterval(intervalId);
-                }
-                
-                if (data.message && data.message.trim() !== "") {
-                    document.getElementById('zone-message').style.display = 'block';
-                    document.getElementById('texte-message').innerText = data.message;
-                }
-            })
-            .catch(err => console.log("En attente..."));
-    }
-
-    // Lancer la vérification toutes les 3 secondes
-    intervalId = setInterval(verifierStatut, 3000);
-    
-    // Première vérification immédiate au chargement
-    verifierStatut();
+    document.addEventListener('DOMContentLoaded', function() {
+        const retraitId = "{{ retrait_id }}";
+        if (!retraitId) return;
+        
+        const intervalId = setInterval(function() {
+            fetch(`/api/retrait/${retraitId}`)
+                .then(r => r.json())
+                .then(data => {
+                    if (data.statut === 'prepare' || data.statut === 'preparation') {
+                        clearInterval(intervalId);
+                        
+                        // On cache la zone d'attente
+                        const zoneAttente = document.getElementById('zone-attente');
+                        if (zoneAttente) zoneAttente.style.display = 'none';
+                        
+                        // On affiche les infos
+                        const zoneInfos = document.getElementById('zone-infos');
+                        if (zoneInfos) {
+                            zoneInfos.style.display = 'block';
+                            
+                            // On remplit la rue et la ville
+                            const infoRue = document.getElementById('info-rue');
+                            const infoVille = document.getElementById('info-ville');
+                            if (infoRue) infoRue.textContent = data.rue;
+                            if (infoVille) infoVille.textContent = data.ville;
+                            
+                            // On fait défiler la page jusqu'aux infos
+                            zoneInfos.scrollIntoView({ behavior: 'smooth' });
+                        }
+                        
+                        // Confettis pour fêter ça !
+                        if (typeof fireConfetti === 'function') fireConfetti();
+                    }
+                }).catch(e => {});
+        }, 3000);
+    });
 </script>
 {% endblock %}
