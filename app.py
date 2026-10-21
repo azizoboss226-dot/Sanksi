@@ -217,6 +217,31 @@ def envoyer_push(telephone, titre, message):
     pousser(telephone, message, "/", titre)
 
 
+def pousser_abonnes(lignes, message, titre="SANKSI", url="/"):
+    import os, json
+    cle = os.environ.get("VAPID_PRIVATE_KEY")
+    if not cle:
+        print("[push] stop : cle privee manquante")
+        return 0
+    try:
+        from pywebpush import webpush
+    except Exception as e_imp:
+        print("[push] stop : pywebpush indisponible :", e_imp)
+        return 0
+    sujet = os.environ.get("VAPID_SUBJECT", "mailto:contact@sanksi.com")
+    ok = 0
+    for e, p, a in lignes:
+        try:
+            webpush(subscription_info={"endpoint": e, "keys": {"p256dh": p, "auth": a}},
+                    data=json.dumps({"title": titre, "body": message, "url": url}),
+                    vapid_private_key=cle, vapid_claims={"sub": sujet})
+            ok += 1
+        except Exception as err:
+            print("push erreur:", err)
+    print("[push] annonce :", ok, "envoyes sur", len(lignes))
+    return ok
+
+
 def ajouter_notif(telephone, message):
     if not telephone:
         return
@@ -791,15 +816,17 @@ def admin_push_all():
     if message:
         conn = sqlite3.connect('sanksi.db')
         c = conn.cursor()
+        c.execute("SELECT endpoint, p256dh, auth FROM push_subs")
+        abonnes = c.fetchall()
         c.execute("SELECT DISTINCT telephone FROM push_subs WHERE telephone IS NOT NULL AND telephone != ''")
         telephones = c.fetchall()
+        for t in telephones:
+            c.execute("INSERT INTO notifications (telephone, message, lu, created_at) VALUES (?, ?, 0, ?)", (t[0], message, datetime.now().isoformat()))
         c.execute("INSERT INTO historique_notifs (message, date_envoi) VALUES (?, datetime('now', 'localtime'))", (message,))
         conn.commit()
         conn.close()
         
-        for t in telephones:
-            if t[0]:
-                envoyer_push(t[0], "📣 Annonce SANKSI", message)
+        pousser_abonnes(abonnes, message, "📣 Annonce SANKSI")
                 
     return redirect("/gestion-sanksi-2026")
 
@@ -863,9 +890,12 @@ def admin_relancer_inactifs():
     inactifs = c.fetchall()
     conn.close()
     
-    for t in inactifs:
-        if t[0]:
-            envoyer_push(t[0], "🎁 Tu nous manques !", "Reviens faire un dépôt aujourd'hui sur SANKSI et gagne des points bonus !")
+    conn2 = sqlite3.connect('sanksi.db')
+    c2 = conn2.cursor()
+    c2.execute("SELECT endpoint, p256dh, auth FROM push_subs WHERE telephone IS NULL OR telephone = '' OR substr(replace(replace(replace(replace(telephone,' ',''),'+',''),'-',''),'.',''), -8) NOT IN (SELECT substr(replace(replace(replace(replace(telephone,' ',''),'+',''),'-',''),'.',''), -8) FROM demandes WHERE telephone IS NOT NULL AND date(created_at) >= date('now', '-7 days', 'localtime'))")
+    cibles = c2.fetchall()
+    conn2.close()
+    pousser_abonnes(cibles, "Reviens faire un dépôt aujourd'hui sur SANKSI et gagne des points bonus !", "🎁 Tu nous manques !")
 
     return redirect("/gestion-sanksi-2026")
 
