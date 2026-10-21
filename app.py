@@ -305,7 +305,7 @@ def get_fake_stats():
     if days_active <= 30:
         return 200, 2000000
     else:
-        return 0, 0
+        return 200, 2000000
 
 
 @app.route("/force-db-setup")
