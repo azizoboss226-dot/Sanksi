@@ -1013,6 +1013,10 @@ def admin_preparer_retrait(id):
     rue = request.form.get("rue", "").strip()
     ville = request.form.get("ville", "").strip()
     
+    if not rue or not ville:
+        # Si l'admin n'a pas rempli, on ne fait rien et on le redirige
+        return redirect("/gestion-sanksi-2026")
+
     if rue and ville:
         infos = f"{rue}|{ville}"
         conn = sqlite3.connect('sanksi.db')
