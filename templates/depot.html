@@ -1,31 +1,5 @@
 {% extends "base.html" %}
-{% block title %}SANKSI — Dépôt en cours
-<script>
-    // Relance panier abandonné après 5 minutes
-    document.addEventListener('DOMContentLoaded', () => {
-        const tel = localStorage.getItem('sanksi_tel');
-        const montant = "{{ montant }}";
-        
-        if (tel && montant && montant !== "0") {
-            // 5 minutes = 300 000 ms
-            const timerRelance = setTimeout(() => {
-                fetch('/api/relance-panier', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({telephone: tel, montant: montant})
-                });
-            }, 300000); 
-            
-            // Si l'utilisateur clique sur "J'ai effectué le paiement", on annule la relance
-            const form = document.querySelector('form');
-            if (form) {
-                form.addEventListener('submit', () => clearTimeout(timerRelance));
-            }
-        }
-    });
-</script>
-
-{% endblock %}
+{% block title %}SANKSI — Dépôt en cours{% endblock %}
 
 {% block content %}
 <div class="page fade-in">
@@ -39,129 +13,144 @@
         <p style="color: var(--primary); font-size: 12px; font-weight: 800;">via {{ operateur }}</p>
     </div>
 
-    <!-- Instructions -->
-    <div class="card">
-        <div class="step-title">
-            <span class="step-num">1</span> Envoyez l'argent au numéro :
+    <!-- Bandeau Notifications -->
+    <div class="notif-prompt" style="display:none; background:var(--primary-soft); border:1.5px solid var(--primary); border-radius:var(--radius); padding:14px 16px; margin-bottom:16px; align-items:center; gap:12px; animation:fadeIn 0.4s ease;">
+        <div style="font-size:24px;">🔔</div>
+        <div style="flex:1;">
+            <div style="font-weight:800; font-size:13px; color:var(--text);">Active les notifications</div>
+            <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">Pour suivre tes dépôts et retraits en temps réel.</div>
         </div>
-        <div style="display: flex; gap: 8px; align-items: stretch;">
-            <div class="merchant-number" style="flex: 1; margin: 0;">+226 77 97 09 85</div>
-            <button type="button" class="btn btn-secondary" style="width: auto; padding: 0 16px; min-height: auto; border-radius: var(--radius);" onclick="copyText('+226 77 97 09 85')">📋</button>
-        </div>
-
-        <div class="timer-wrap">
-            <div class="timer" id="timer">⏳ 03:00</div>
+        <div style="display:flex; flex-direction:column; gap:4px;">
+            <button type="button" class="btn btn-primary" style="padding:6px 12px; font-size:12px; min-height:32px; border-radius:8px;" onclick="askNotificationPermission()">Activer</button>
+            <button type="button" style="background:none; border:none; color:var(--text-muted); font-size:10px; font-weight:700; text-decoration:underline;" onclick="dismissNotifPrompt()">Plus tard</button>
         </div>
     </div>
 
-    <!-- Formulaire -->
-    
-<!-- Bandeau Notifications -->
-<div class="notif-prompt" style="display:none; background:var(--primary-soft); border:1.5px solid var(--primary); border-radius:var(--radius); padding:14px 16px; margin-bottom:16px; align-items:center; gap:12px; animation:fadeIn 0.4s ease;">
-    <div style="font-size:24px;">🔔</div>
-    <div style="flex:1;">
-        <div style="font-weight:800; font-size:13px; color:var(--text);">Active les notifications</div>
-        <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">Pour suivre tes dépôts et retraits en temps réel.</div>
-    </div>
-    <div style="display:flex; flex-direction:column; gap:4px;">
-        <button type="button" class="btn btn-primary" style="padding:6px 12px; font-size:12px; min-height:32px; border-radius:8px;" onclick="askNotificationPermission()">Activer</button>
-        <button type="button" style="background:none; border:none; color:var(--text-muted); font-size:10px; font-weight:700; text-decoration:underline;" onclick="dismissNotifPrompt()">Plus tard</button>
-    </div>
-</div>
-
-<form action="/depot/confirmer" method="POST" style="margin-bottom: 20px;">
+    <form action="/depot/confirmer" method="POST" style="margin-bottom: 20px;">
         <input type="hidden" name="montant" value="{{ montant }}">
         <input type="hidden" name="operateur" value="{{ operateur }}">
         <input type="hidden" name="reference" value="{{ reference }}">
 
-        <div class="card">
-            <label class="label">
-                <span class="step-num" style="display:inline-flex; margin-right:6px; width:20px; height:20px; font-size:11px;">2</span> 
-                Ton ID Joueur 1xBet
-            </label>
-            <input type="text" name="id_1xbet" required class="input-field" placeholder="Ex: 123456789" value="{{ id_1xbet }}">
+        <!-- ÉTAPE 1 : Infos client -->
+        <div id="etape-infos">
+            <div class="card">
+                <label class="label">
+                    <span class="step-num" style="display:inline-flex; margin-right:6px; width:20px; height:20px; font-size:11px;">1</span>
+                    Ton ID Joueur 1xBet
+                </label>
+                <input type="text" name="id_1xbet" required class="input-field" placeholder="Ex: 123456789" value="{{ id_1xbet }}">
+            </div>
+
+            <div class="card">
+                <label class="label">
+                    <span class="step-num" style="display:inline-flex; margin-right:6px; width:20px; height:20px; font-size:11px;">2</span>
+                    Ton nom complet
+                </label>
+                <input type="text" name="nom" required class="input-field" placeholder="Ex: Moussa Traoré">
+            </div>
+
+            <div class="card">
+                <label class="label">
+                    <span class="step-num" style="display:inline-flex; margin-right:6px; width:20px; height:20px; font-size:11px;">3</span>
+                    Ton numéro de téléphone
+                </label>
+                <p class="hint" style="margin-bottom: 10px;">(Celui utilisé pour le dépôt, ex: +226 70 00 00 00)</p>
+                <input type="tel" pattern="[0-9+ ]{8,}" title="Le numéro doit contenir au moins 8 chiffres" name="telephone" required class="input-field" placeholder="Ex: 70 00 00 00">
+            </div>
+
+            <div class="card">
+                <label class="label">
+                    <span class="step-num" style="display:inline-flex; margin-right:6px; width:20px; height:20px; font-size:11px;">4</span>
+                    Code Parrain (Optionnel)
+                </label>
+                <input type="text" name="parrain" class="input-field" placeholder="Ex: SANKSI123">
+                <p class="hint">Si un ami t'a invité, mets son code ici.</p>
+            </div>
+
+            <button type="button" onclick="afficherDepot()" class="btn-main" style="margin: 0; width: 100%;">Continuer vers le dépôt</button>
         </div>
 
-        
-        <div class="card">
-            <label class="label">
-                <span class="step-num" style="display:inline-flex; margin-right:6px; width:20px; height:20px; font-size:11px;">4</span> 
-                Code Parrain (Optionnel)
-            </label>
-            <input type="text" name="parrain" class="input-field" placeholder="Ex: SANKSI123">
-            <p class="hint">Si un ami t'a invité, mets son code ici.</p>
-        </div>
+        <!-- ÉTAPE 2 : Numéro de dépôt (Caché au début) -->
+        <div id="etape-depot" style="display: none;">
+            <div class="card text-center" style="border: 2px solid var(--primary); background: var(--primary-soft); margin-bottom: 20px; padding: 20px;">
+                <p class="text-muted" style="font-size: 14px; margin: 0 0 12px 0; font-weight: 600;">Envoie exactement <b>{{ montant }} FCFA</b> au numéro :</p>
+                
+                <div style="display: flex; gap: 8px; align-items: stretch; justify-content: center; margin-bottom: 16px;">
+                    <div class="merchant-number" style="font-size: 22px; color: var(--primary); border-color: var(--primary); margin: 0; background: white; flex: 1;">+226 77 97 09 85</div>
+                    <button type="button" class="btn btn-secondary" style="width: auto; padding: 0 16px; min-height: auto; border-radius: var(--radius);" onclick="copyText('+226 77 97 09 85')">📋</button>
+                </div>
 
-        <div class="card">
-            <label class="label">
-                <span class="step-num" style="display:inline-flex; margin-right:6px; width:20px; height:20px; font-size:11px;">5</span> 
-                Ton numéro de téléphone
-            </label>
-            <p class="hint" style="margin-bottom: 10px;">(Celui utilisé pour le dépôt, ex: +226 70 00 00 00)</p>
-            <input type="tel" pattern="[0-9+ ]{8,}" title="Le numéro doit contenir au moins 8 chiffres" name="telephone" required class="input-field" placeholder="Ex: 70 00 00 00">
-        </div>
+                <p class="text-muted" style="font-size: 12px; margin: 0 0 16px 0;">via {{ operateur }}</p>
 
-        <button type="submit" class="btn-main" style="margin: 0; width: 100%;">J'ai effectué le paiement</button>
+                <div class="timer-wrap">
+                    <div class="timer" id="timer">⏳ 03:00</div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-main" style="margin: 0; width: 100%; background: var(--success); box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);">✅ J'ai effectué le dépôt</button>
+        </div>
     </form>
 </div>
-
-<script>
-    // Relance panier abandonné après 5 minutes
-    document.addEventListener('DOMContentLoaded', () => {
-        const tel = localStorage.getItem('sanksi_tel');
-        const montant = "{{ montant }}";
-        
-        if (tel && montant && montant !== "0") {
-            // 5 minutes = 300 000 ms
-            const timerRelance = setTimeout(() => {
-                fetch('/api/relance-panier', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({telephone: tel, montant: montant})
-                });
-            }, 300000); 
-            
-            // Si l'utilisateur clique sur "J'ai effectué le paiement", on annule la relance
-            const form = document.querySelector('form');
-            if (form) {
-                form.addEventListener('submit', () => clearTimeout(timerRelance));
-            }
-        }
-    });
-</script>
-
 {% endblock %}
 
 {% block scripts %}
 <script>
-    // 1. Timer
-    let timeLeft = 180; // 3 minutes
-    const timerEl = document.getElementById('timer');
-    
-    const interval = setInterval(() => {
-        if (timeLeft <= 0) {
-            clearInterval(interval);
-            timerEl.innerHTML = '⚠️ Temps écoulé';
-            timerEl.style.background = 'var(--danger-soft)';
-            timerEl.style.color = 'var(--danger)';
-            
-            // On désactive le bouton de paiement
-            const btn = document.querySelector('button[type="submit"]');
-            if (btn) {
-                btn.disabled = true;
-                btn.style.opacity = '0.5';
-                btn.innerText = 'Temps écoulé';
-                showToast("Le temps de paiement est écoulé. Recommence ton dépôt.", "error");
-            }
+    // 1. Fonction pour passer à l'étape 2
+    function afficherDepot() {
+        // On vérifie que les champs de l'étape 1 sont remplis
+        const form = document.querySelector('form');
+        const id = form.querySelector('input[name="id_1xbet"]');
+        const nom = form.querySelector('input[name="nom"]');
+        const tel = form.querySelector('input[name="telephone"]');
+
+        if (!id.value || !nom.value || !tel.value) {
+            showToast("Remplis toutes les informations avant de continuer.", "error");
             return;
         }
-        timeLeft--;
-        const m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
-        const s = (timeLeft % 60).toString().padStart(2, '0');
-        timerEl.innerHTML = `⏳ ${m}:${s}`;
-    }, 1000);
 
-    // 2. Fonction Copier
+        document.getElementById('etape-infos').style.display = 'none';
+        document.getElementById('etape-depot').style.display = 'block';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // 2. Timer
+    let timeLeft = 180; // 3 minutes
+    const timerEl = document.getElementById('timer');
+    let interval = null;
+
+    function startTimer() {
+        if (interval) clearInterval(interval);
+        interval = setInterval(() => {
+            if (timeLeft <= 0) {
+                clearInterval(interval);
+                timerEl.innerHTML = '⚠️ Temps écoulé';
+                timerEl.style.background = 'var(--danger-soft)';
+                timerEl.style.color = 'var(--danger)';
+
+                const btn = document.querySelector('button[type="submit"]');
+                if (btn) {
+                    btn.disabled = true;
+                    btn.style.opacity = '0.5';
+                    btn.innerText = 'Temps écoulé';
+                    showToast("Le temps de paiement est écoulé. Recommence ton dépôt.", "error");
+                }
+                return;
+            }
+            timeLeft--;
+            const m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+            const s = (timeLeft % 60).toString().padStart(2, '0');
+            timerEl.innerHTML = `⏳ ${m}:${s}`;
+        }, 1000);
+    }
+
+    // On lance le timer seulement quand on affiche le numéro de dépôt
+    const originalAfficherDepot = afficherDepot;
+    afficherDepot = function() {
+        originalAfficherDepot();
+        if (timeLeft === 180) startTimer();
+    };
+
+    // 3. Fonction Copier
     function copyText(text) {
         if (navigator.clipboard) {
             navigator.clipboard.writeText(text).then(() => {
@@ -180,30 +169,4 @@
         }
     }
 </script>
-
-<script>
-    // Relance panier abandonné après 5 minutes
-    document.addEventListener('DOMContentLoaded', () => {
-        const tel = localStorage.getItem('sanksi_tel');
-        const montant = "{{ montant }}";
-        
-        if (tel && montant && montant !== "0") {
-            // 5 minutes = 300 000 ms
-            const timerRelance = setTimeout(() => {
-                fetch('/api/relance-panier', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({telephone: tel, montant: montant})
-                });
-            }, 300000); 
-            
-            // Si l'utilisateur clique sur "J'ai effectué le paiement", on annule la relance
-            const form = document.querySelector('form');
-            if (form) {
-                form.addEventListener('submit', () => clearTimeout(timerRelance));
-            }
-        }
-    });
-</script>
-
 {% endblock %}
