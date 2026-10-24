@@ -89,25 +89,7 @@
     
     <!-- ================= DÉPÔTS ================= -->
     
-    {% if top_parrains %}
-    <h2 class="section-title" style="margin-top: 24px;">🏆 Top 5 des Parrains</h2>
-    <div class="card" style="padding: 0; overflow: hidden; margin-bottom: 24px;">
-        <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
-            <tr style="background: var(--bg-deep); text-align: left; border-bottom: 1px solid var(--border);">
-                <th style="padding: 10px; color: var(--text-muted);">Code Parrain</th>
-                <th style="padding: 10px; color: var(--text-muted); text-align: center;">Filleuls</th>
-                <th style="padding: 10px; color: var(--text-muted); text-align: right;">Volume</th>
-            </tr>
-            {% for p in top_parrains %}
-            <tr style="border-bottom: 1px solid var(--border);">
-                <td style="padding: 10px; font-weight: 800;">{{ p[0] }}</td>
-                <td style="padding: 10px; text-align: center;">{{ p[1] }}</td>
-                <td style="padding: 10px; color: var(--primary); font-weight: 900; text-align: right;">{{ p[2] }} F</td>
-            </tr>
-            {% endfor %}
-        </table>
-    </div>
-    {% endif %}
+    
 
     
     <!-- Réclamations Clients -->

@@ -764,7 +764,7 @@ def admin():
                            total_retraits_count=total_retraits_count,
                            total_retraits_montant=total_retraits_montant,
                            attente_depots=attente_depots,
-                           attente_retraits=attente_retraits, top_parrains=top_parrains, is_maintenance=check_maintenance())
+                           attente_retraits=attente_retraits, is_maintenance=check_maintenance())
 
 
 
