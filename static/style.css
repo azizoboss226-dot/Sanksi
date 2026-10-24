@@ -7,11 +7,11 @@
   --bg: #F3F4F6;
   --bg-elevated: #FFFFFF;
   --bg-deep: #E5E7EB;
-  --border: #EAE0FF;
-  --border-strong: #D8C7FF;
-  --text: #1E1033;
-  --text-muted: #6B5B8A;
-  --text-dim: #9B8BB8;
+  --border: #E5E7EB;
+  --border-strong: #D1D5DB;
+  --text: #111827;
+  --text-muted: #6B7280;
+  --text-dim: #9CA3AF;
 
   --primary: #0EA5E9; /* Bleu ciel de l'affiche */
   --primary-hover: #0284C7;
